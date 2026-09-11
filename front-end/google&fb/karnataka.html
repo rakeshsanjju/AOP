@@ -1,0 +1,4542 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        Karnataka Leads Performance Report
+    </title>
+
+    <style>
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        body {
+            background: #f1f5f9;
+            color: #0f172a;
+        }
+
+        /* =====================================================
+           SIDEBAR
+        ===================================================== */
+
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 260px;
+            height: 100vh;
+            padding: 30px 20px;
+            background: #0f172a;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            z-index: 1000;
+        }
+
+        .sidebar::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 10px;
+        }
+
+        .sidebar-title {
+            margin-bottom: 35px;
+        }
+
+        .sidebar-title h2 {
+            margin-bottom: 5px;
+            font-size: 22px;
+        }
+
+        .sidebar-title span {
+            color: #94a3b8;
+            font-size: 12px;
+        }
+
+        .sidebar-menu {
+            display: flex;
+            flex-direction: column;
+            gap: 7px;
+        }
+
+        .sidebar-link {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 13px 14px;
+            border: none;
+            border-radius: 7px;
+            background: transparent;
+            color: #cbd5e1;
+            text-decoration: none;
+            cursor: pointer;
+            font-size: 14px;
+            text-align: left;
+            transition: all 0.2s ease;
+        }
+
+        .sidebar-link:hover {
+            background: #1e293b;
+            color: white;
+        }
+
+        .sidebar-link.active {
+            background: #2563eb;
+            color: white;
+        }
+
+        .dropdown {
+            width: 100%;
+        }
+
+        .dropdown-arrow {
+            font-size: 10px;
+            transition: transform 0.3s ease;
+        }
+
+        .dropdown.open .dropdown-arrow {
+            transform: rotate(180deg);
+        }
+
+        .submenu {
+            display: none;
+            flex-direction: column;
+            margin-top: 5px;
+            margin-left: 12px;
+            padding-left: 12px;
+            border-left: 1px solid #334155;
+        }
+
+        .dropdown.open .submenu {
+            display: flex;
+        }
+
+        .submenu-link {
+            display: block;
+            padding: 10px 12px;
+            margin-bottom: 3px;
+            border-radius: 6px;
+            color: #94a3b8;
+            text-decoration: none;
+            font-size: 13px;
+            transition: all 0.2s ease;
+        }
+
+        .submenu-link:hover {
+            padding-left: 16px;
+            background: #1e293b;
+            color: white;
+        }
+
+
+        .submenu-link.active {
+            background: #334155;
+            color: white;
+            font-weight: 600;
+        }
+
+        #logoutButton {
+            width: 100%;
+            min-height: 43px;
+            margin-top: auto;
+            border: none;
+            border-radius: 7px;
+            background: #dc2626;
+            color: white;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        #logoutButton:hover {
+            background: #b91c1c;
+        }
+
+        /* =====================================================
+           MAIN
+        ===================================================== */
+
+        main {
+            margin-left: 260px;
+            min-height: 100vh;
+            padding: 35px;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .page-header h1 {
+            margin-bottom: 7px;
+            font-size: 28px;
+        }
+
+        .page-header p {
+            color: #64748b;
+            font-size: 14px;
+        }
+
+        .admin-profile {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .admin-avatar {
+            width: 44px;
+            height: 44px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 50%;
+            background: #2563eb;
+            color: white;
+            font-weight: bold;
+        }
+
+        .admin-details {
+            display: flex;
+            flex-direction: column;
+        }
+
+        #adminName {
+            font-size: 14px;
+        }
+
+        #adminEmail {
+            margin-top: 4px;
+            color: #64748b;
+            font-size: 12px;
+        }
+
+        .section-card {
+            margin-bottom: 25px;
+            padding: 28px;
+            border-radius: 12px;
+            background: white;
+            box-shadow: 0 4px 15px rgba(15, 23, 42, 0.05);
+        }
+
+        .report-title h2 {
+            margin-bottom: 8px;
+            font-size: 22px;
+        }
+
+        .report-title p {
+            color: #64748b;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .source-note {
+            margin-top: 14px;
+            padding: 12px 14px;
+            border-radius: 8px;
+            background: #eff6ff;
+            color: #1e40af;
+            font-size: 12px;
+            line-height: 1.6;
+        }
+
+        .control-row {
+            display: grid;
+            grid-template-columns: minmax(220px, 300px) 1fr;
+            gap: 20px;
+            align-items: end;
+            margin-top: 22px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #475569;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .form-group input {
+            width: 100%;
+            height: 43px;
+            padding: 0 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 7px;
+            background: white;
+            outline: none;
+        }
+
+        .form-group input:focus {
+            border-color: #2563eb;
+        }
+
+        .live-button,
+        .generate-button {
+            min-height: 43px;
+            padding: 0 20px;
+            border: none;
+            border-radius: 7px;
+            color: white;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .live-button {
+            background: #2563eb;
+        }
+
+        .live-button:hover {
+            background: #1d4ed8;
+        }
+
+        .generate-button {
+            min-height: 48px;
+            padding: 0 28px;
+            background: #0f172a;
+            font-size: 15px;
+        }
+
+        .generate-button:hover {
+            background: #1e293b;
+        }
+
+        .live-button:disabled,
+        .generate-button:disabled {
+            opacity: 0.65;
+            cursor: not-allowed;
+        }
+
+        .live-source {
+            margin-top: 16px;
+            padding: 11px 13px;
+            border-radius: 7px;
+            background: #f8fafc;
+            color: #475569;
+            font-size: 12px;
+            line-height: 1.6;
+        }
+
+        /* =====================================================
+           MESSAGES
+        ===================================================== */
+
+        .message {
+            display: none;
+            margin-top: 15px;
+            padding: 12px 14px;
+            border-radius: 7px;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .message.show {
+            display: block;
+        }
+
+        .message.processing {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .message.success {
+            background: #dcfce7;
+            color: #15803d;
+        }
+
+        .message.warning {
+            background: #fff7ed;
+            color: #c2410c;
+            border: 1px solid #fed7aa;
+        }
+
+        .message.error {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+
+        /* =====================================================
+           METRIC CARDS
+        ===================================================== */
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        .metric-card {
+            padding: 22px;
+            border-radius: 12px;
+            background: white;
+            box-shadow: 0 4px 15px rgba(15, 23, 42, 0.05);
+        }
+
+        .metric-title {
+            margin-bottom: 18px;
+            color: #0f172a;
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        .metric-values {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .metric-box {
+            padding: 12px;
+            border-radius: 8px;
+            background: #f8fafc;
+        }
+
+        .metric-box.full {
+            grid-column: 1 / -1;
+        }
+
+        .metric-box.need {
+            background: #fff7ed;
+        }
+
+        .metric-box.complete {
+            background: #dcfce7;
+        }
+
+        .metric-box span {
+            display: block;
+            margin-bottom: 6px;
+            color: #64748b;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .metric-box strong {
+            display: block;
+            color: #0f172a;
+            font-size: 21px;
+            line-height: 1.25;
+            word-break: break-word;
+        }
+
+        .metric-box.need strong {
+            color: #c2410c;
+        }
+
+        .metric-box.complete span,
+        .metric-box.complete strong {
+            color: #15803d;
+        }
+
+        .metric-result {
+            margin-top: 14px;
+        }
+
+        .status {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 7px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .status-success {
+            background: #dcfce7;
+            color: #15803d;
+        }
+
+        .status-failed {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+
+        .status-missing {
+            background: #fff7ed;
+            color: #c2410c;
+        }
+
+        /* =====================================================
+           TABLES
+        ===================================================== */
+
+        .table-title {
+            margin-bottom: 18px;
+            font-size: 19px;
+        }
+
+        .table-wrapper {
+            width: 100%;
+            overflow-x: auto;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            padding: 13px 12px;
+            border-bottom: 1px solid #e2e8f0;
+            font-size: 12px;
+            text-align: left;
+            white-space: nowrap;
+        }
+
+        th {
+            background: #f8fafc;
+            color: #475569;
+        }
+
+        tbody tr:hover {
+            background: #f8fafc;
+        }
+
+        .performance-table {
+            min-width: 760px;
+        }
+
+        .state-table {
+            min-width: 1250px;
+        }
+
+        .state-name {
+            font-weight: 700;
+            color: #0f172a;
+        }
+
+        .source-column {
+            margin-top: 3px;
+            color: #64748b;
+            font-size: 11px;
+        }
+
+        /* =====================================================
+           HISTORY
+        ===================================================== */
+
+        .generated-reports {
+            margin-top: 28px;
+        }
+
+        .generated-reports-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .generated-actions {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 10px;
+        }
+
+        #reportCount {
+            color: #64748b;
+            font-size: 12px;
+        }
+
+        .refresh-history-button,
+        .clear-history-button {
+            min-height: 34px;
+            padding: 0 12px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .refresh-history-button {
+            background: #dbeafe;
+            color: #1d4ed8;
+        }
+
+        .clear-history-button {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+
+        .report-table-wrapper {
+            width: 100%;
+            overflow-x: auto;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+        }
+
+        .report-table {
+            min-width: 1320px;
+        }
+
+        .report-table th,
+        .report-table td {
+            white-space: normal;
+            vertical-align: middle;
+        }
+
+        .history-summary {
+            min-width: 330px;
+            line-height: 1.45;
+        }
+
+        .table-button {
+            min-width: 95px;
+            min-height: 40px;
+            padding: 7px 11px;
+            border: none;
+            border-radius: 7px;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .view-pdf {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+
+        .view-excel {
+            background: #dcfce7;
+            color: #15803d;
+        }
+
+        .download-pdf {
+            background: #eff6ff;
+            color: #1d4ed8;
+        }
+
+        .download-excel {
+            background: #ecfdf5;
+            color: #047857;
+        }
+
+        .send-mail {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .history-empty {
+            padding: 30px !important;
+            text-align: center !important;
+            color: #94a3b8;
+        }
+
+        /* =====================================================
+           RESPONSIVE
+        ===================================================== */
+
+        @media(max-width: 1100px) {
+
+            .metrics-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+        }
+
+        @media(max-width: 800px) {
+
+            .sidebar {
+                width: 210px;
+            }
+
+            main {
+                margin-left: 210px;
+                padding: 20px;
+            }
+
+            .metrics-grid,
+            .control-row {
+                grid-template-columns: 1fr;
+            }
+
+            .page-header,
+            .generated-reports-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 20px;
+            }
+
+            .generate-button {
+                width: 100%;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<aside class="sidebar">
+
+    <div class="sidebar-title">
+
+        <h2>
+            Admin Panel
+        </h2>
+
+        <span>
+            Super Admin
+        </span>
+
+    </div>
+
+
+    <div class="sidebar-menu">
+
+        <!-- =========================================
+             PAN INDIA
+        ========================================== -->
+
+        <a
+            href="../pan-india.html"
+            class="sidebar-link"
+        >
+            <span>
+                Pan India Report
+            </span>
+        </a>
+
+
+        <!-- =========================================
+             IP REPORTS
+        ========================================== -->
+
+        <div
+            class="dropdown"
+            id="ipDropdown"
+        >
+
+            <button
+                type="button"
+                class="sidebar-link"
+                id="ipDropdownButton"
+            >
+                <span>
+                    IP Reports
+                </span>
+
+                <span class="dropdown-arrow">
+                    ▼
+                </span>
+            </button>
+
+
+            <div class="submenu">
+
+                <a
+                    href="../ip/ap&amp;ts.html"
+                    class="submenu-link"
+                >
+                    Andhra Pradesh
+                </a>
+
+                <a
+                    href="../ip/ap&amp;ts.html"
+                    class="submenu-link"
+                >
+                    Telangana
+                </a>
+
+                <a
+                    href="../ip/karnataka.html"
+                    class="submenu-link"
+                >
+                    Karnataka
+                </a>
+
+                <a
+                    href="../ip/tamil-nadu.html"
+                    class="submenu-link"
+                >
+                    Tamil Nadu
+                </a>
+
+                <a
+                    href="../ip/west-bengal.html"
+                    class="submenu-link"
+                >
+                    West Bengal
+                </a>
+
+                <a
+                    href="../ip/maharashtra.html"
+                    class="submenu-link"
+                >
+                    Maharashtra
+                </a>
+
+            </div>
+
+        </div>
+
+
+        <!-- =========================================
+             OP REPORTS
+        ========================================== -->
+
+        <div
+            class="dropdown"
+            id="opDropdown"
+        >
+
+            <button
+                type="button"
+                class="sidebar-link"
+                id="opDropdownButton"
+            >
+                <span>
+                    OP Reports
+                </span>
+
+                <span class="dropdown-arrow">
+                    ▼
+                </span>
+            </button>
+
+
+            <div class="submenu">
+
+                <a
+                    href="../op/ap&amp;ts.html"
+                    class="submenu-link"
+                >
+                    Andhra Pradesh
+                </a>
+
+                <a
+                    href="../op/ap&amp;ts.html"
+                    class="submenu-link"
+                >
+                    Telangana
+                </a>
+
+                <a
+                    href="../op/karnataka.html"
+                    class="submenu-link"
+                >
+                    Karnataka
+                </a>
+
+                <a
+                    href="../op/tamil-nadu.html"
+                    class="submenu-link"
+                >
+                    Tamil Nadu
+                </a>
+
+                <a
+                    href="../op/west-bengal.html"
+                    class="submenu-link"
+                >
+                    West Bengal
+                </a>
+
+                <a
+                    href="../op/maharashtra.html"
+                    class="submenu-link"
+                >
+                    Maharashtra
+                </a>
+
+                <a
+                    href="../op/delhi.html"
+                    class="submenu-link"
+                >
+                    Delhi
+                </a>
+
+            </div>
+
+        </div>
+
+
+        <!-- =========================================
+             GOOGLE & FB REPORTS
+        ========================================== -->
+
+        <div
+            class="dropdown open"
+            id="googleFbDropdown"
+        >
+
+            <button
+                type="button"
+                class="sidebar-link active"
+                id="googleFbDropdownButton"
+            >
+                <span>
+                    Google &amp; FB Reports
+                </span>
+
+                <span class="dropdown-arrow">
+                    ▼
+                </span>
+            </button>
+
+
+            <div class="submenu">
+
+                <a
+                    href="./ap&amp;ts.html"
+                    class="submenu-link"
+                >
+                    AP &amp; TS
+                </a>
+
+                <a
+                    href="./karnataka.html"
+                    class="submenu-link active"
+                >
+                    Karnataka
+                </a>
+
+                <a
+                    href="./tamil-nadu.html"
+                    class="submenu-link"
+                >
+                    Tamil Nadu
+                </a>
+
+                <a
+                    href="./west-bengal.html"
+                    class="submenu-link"
+                >
+                    West Bengal
+                </a>
+
+                <a
+                    href="./maharashtra.html"
+                    class="submenu-link"
+                >
+                    Maharashtra
+                </a>
+
+                <a
+                    href="./delhi.html"
+                    class="submenu-link"
+                >
+                    Delhi
+                </a>
+
+            </div>
+
+        </div>
+
+
+        <!-- =========================================
+             LAB
+        ========================================== -->
+
+        <a
+            href="../lab.html"
+            class="sidebar-link"
+        >
+            <span>
+                Lab
+            </span>
+        </a>
+
+
+        <!-- =========================================
+             PHARMACY
+        ========================================== -->
+
+        <a
+            href="../pharmacy.html"
+            class="sidebar-link"
+        >
+            <span>
+                Pharmacy
+            </span>
+        </a>
+
+    </div>
+
+
+    <button id="logoutButton">
+        Logout
+    </button>
+
+</aside>
+
+<main>
+
+    <!-- =================================================
+         HEADER
+    ================================================== -->
+
+    <header class="page-header">
+
+        <div>
+
+            <h1>
+                Karnataka Leads Performance Report
+            </h1>
+
+            <p>
+                Karnataka IP Count, IP Revenue, Leads, Lead → OP Conversion and OP Revenue
+            </p>
+
+        </div>
+
+        <div class="admin-profile">
+
+            <div class="admin-avatar">
+                SA
+            </div>
+
+            <div class="admin-details">
+
+                <strong id="adminName">
+                    Super Admin
+                </strong>
+
+                <span id="adminEmail">
+                    Loading...
+                </span>
+
+            </div>
+
+        </div>
+
+    </header>
+
+    <!-- =================================================
+         REPORT INFORMATION
+    ================================================== -->
+
+    <section class="section-card report-title">
+
+        <h2>
+            Leads Dashboard
+        </h2>
+
+        <p>
+            This Google &amp; FB dashboard reads <strong>Karnataka data only</strong>.
+            It reflects the requested parameters:
+            <strong>Leads Target, Leads Achieved, OP Target, OP Achieved,
+            Lead → OP Conversion and OP Revenue</strong>. No APTS, Tamil Nadu, West Bengal,
+            Maharashtra or Delhi values are included.
+        </p>
+
+        <p>
+            IP Revenue uses the live Input-sheet rows <strong>IP Revenue Target</strong>, <strong>IP Revenue Generated</strong> and <strong>IP Revenue Yet To Be</strong>. If IP Revenue Target is blank, the backend can derive it from Generated + Yet To Be.
+        </p>
+
+        <div class="source-note">
+            <strong>Live source:</strong>
+            Karnataka only — the Karnataka column from Input → Sheet1.
+        </div>
+
+        <div class="control-row">
+
+            <div class="form-group">
+
+                <label for="reportMonth">
+                    Report Month
+                </label>
+
+                <input
+                    type="month"
+                    id="reportMonth"
+                >
+
+            </div>
+
+            <div>
+
+                <button
+                    type="button"
+                    class="live-button"
+                    id="refreshLiveDataButton"
+                >
+                    Refresh Live Data
+                </button>
+
+            </div>
+
+        </div>
+
+        <div
+            class="live-source"
+            id="liveSourceInfo"
+        >
+            Waiting for Karnataka Leads live data...
+        </div>
+
+        <div class="message processing" id="processingMessage"></div>
+        <div class="message success" id="successMessage"></div>
+        <div class="message warning" id="warningMessage"></div>
+        <div class="message error" id="errorMessage"></div>
+
+    </section>
+
+    <!-- =================================================
+         METRICS
+    ================================================== -->
+
+    <section class="metrics-grid">
+
+        
+        <!-- IP COUNT -->
+
+        <div class="metric-card">
+
+            <div class="metric-title">
+                IP Count
+            </div>
+
+            <div class="metric-values">
+
+                <div class="metric-box">
+
+                    <span>
+                        IP Count Target
+                    </span>
+
+                    <strong id="ipTargetDisplay">
+                        N/A
+                    </strong>
+
+                </div>
+
+                <div class="metric-box">
+
+                    <span>
+                        IP Count Achieved
+                    </span>
+
+                    <strong id="ipAchievedDisplay">
+                        N/A
+                    </strong>
+
+                </div>
+
+                <div
+                    class="metric-box full need"
+                    id="ipNeedBox"
+                >
+
+                    <span>
+                        IP Count Need to Achieve
+                    </span>
+
+                    <strong id="ipNeedDisplay">
+                        N/A
+                    </strong>
+
+                </div>
+
+            </div>
+
+            <div
+                class="metric-result"
+                id="ipResult"
+            ></div>
+
+        </div>
+
+
+        <!-- IP REVENUE -->
+
+        <div class="metric-card">
+
+            <div class="metric-title">
+                IP Revenue
+            </div>
+
+            <div class="metric-values">
+
+                <div class="metric-box">
+
+                    <span>
+                        IP Revenue Target
+                    </span>
+
+                    <strong id="ipRevenueTargetDisplay">
+                        N/A
+                    </strong>
+
+                </div>
+
+                <div class="metric-box">
+
+                    <span>
+                        IP Revenue Generated
+                    </span>
+
+                    <strong id="ipRevenueAchievedDisplay">
+                        N/A
+                    </strong>
+
+                </div>
+
+                <div
+                    class="metric-box full need"
+                    id="ipRevenueNeedBox"
+                >
+
+                    <span>
+                        IP Revenue Need to Achieve
+                    </span>
+
+                    <strong id="ipRevenueNeedDisplay">
+                        N/A
+                    </strong>
+
+                </div>
+
+            </div>
+
+            <div
+                class="metric-result"
+                id="ipRevenueResult"
+            ></div>
+
+        </div>
+
+
+        <!-- LEADS -->
+
+        <div class="metric-card">
+
+            <div class="metric-title">
+                Leads
+            </div>
+
+            <div class="metric-values">
+
+                <div class="metric-box">
+
+                    <span>
+                        Leads Target
+                    </span>
+
+                    <strong id="leadsTargetDisplay">
+                        N/A
+                    </strong>
+
+                </div>
+
+                <div class="metric-box">
+
+                    <span>
+                        Leads Achieved
+                    </span>
+
+                    <strong id="leadsAchievedDisplay">
+                        N/A
+                    </strong>
+
+                </div>
+
+                <div
+                    class="metric-box full need"
+                    id="leadsNeedBox"
+                >
+
+                    <span>
+                        Leads Need to Achieve
+                    </span>
+
+                    <strong id="leadsNeedDisplay">
+                        N/A
+                    </strong>
+
+                </div>
+
+            </div>
+
+            <div
+                class="metric-result"
+                id="leadsResult"
+            ></div>
+
+        </div>
+
+
+        <!-- OP COUNT -->
+
+        <div class="metric-card">
+
+            <div class="metric-title">
+                OP Count
+            </div>
+
+            <div class="metric-values">
+
+                <div class="metric-box">
+
+                    <span>
+                        OP Target
+                    </span>
+
+                    <strong id="opTargetDisplay">
+                        N/A
+                    </strong>
+
+                </div>
+
+                <div class="metric-box">
+
+                    <span>
+                        OP Achieved
+                    </span>
+
+                    <strong id="opAchievedDisplay">
+                        N/A
+                    </strong>
+
+                </div>
+
+            </div>
+
+            <div
+                class="metric-result"
+                id="opResult"
+            ></div>
+
+        </div>
+
+
+        <!-- LEAD TO OP CONVERSION -->
+
+        <div class="metric-card">
+
+            <div class="metric-title">
+                Lead → OP Conversion
+            </div>
+
+            <div class="metric-values">
+
+                <div class="metric-box">
+
+                    <span>
+                        Target
+                    </span>
+
+                    <strong id="leadToOpTargetDisplay">
+                        N/A
+                    </strong>
+
+                </div>
+
+                <div class="metric-box">
+
+                    <span>
+                        Achieved
+                    </span>
+
+                    <strong id="leadToOpAchievedDisplay">
+                        N/A
+                    </strong>
+
+                </div>
+
+            </div>
+
+            <div
+                class="metric-result"
+                id="leadToOpResult"
+            ></div>
+
+        </div>
+
+
+        <!-- OP REVENUE -->
+
+        <div class="metric-card">
+
+            <div class="metric-title">
+                OP Revenue
+            </div>
+
+            <div class="metric-values">
+
+                <div class="metric-box">
+
+                    <span>
+                        Revenue Target
+                    </span>
+
+                    <strong id="opRevenueTargetDisplay">
+                        N/A
+                    </strong>
+
+                </div>
+
+                <div class="metric-box">
+
+                    <span>
+                        Revenue Achieved
+                    </span>
+
+                    <strong id="opRevenueAchievedDisplay">
+                        N/A
+                    </strong>
+
+                </div>
+
+                <div
+                    class="metric-box full need"
+                    id="opRevenueNeedBox"
+                >
+
+                    <span>
+                        OP Revenue Need to Achieve
+                    </span>
+
+                    <strong id="opRevenueNeedDisplay">
+                        N/A
+                    </strong>
+
+                </div>
+
+            </div>
+
+            <div
+                class="metric-result"
+                id="opRevenueResult"
+            ></div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =================================================
+         APTS PERFORMANCE SUMMARY
+    ================================================== -->
+
+    <section class="section-card">
+
+        <h2 class="table-title">
+            Karnataka Leads Performance Summary
+        </h2>
+
+        <div class="table-wrapper">
+
+            <table class="performance-table">
+
+                <thead>
+
+                    <tr>
+
+                        <th>
+                            Particular
+                        </th>
+
+                        <th>
+                            Target
+                        </th>
+
+                        <th>
+                            Achieved
+                        </th>
+
+                        <th>
+                            Result
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody id="performanceSummaryBody">
+
+                    <tr>
+
+                        <td colspan="4">
+                            Refresh live data to load Karnataka values.
+                        </td>
+
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </section>
+
+
+    <!-- =================================================
+         GENERATE + HISTORY
+    ================================================== -->
+
+    <section class="section-card">
+
+        <button
+            type="button"
+            class="generate-button"
+            id="generateReportButton"
+        >
+            Generate Report
+        </button>
+
+        <div class="generated-reports">
+
+            <div class="generated-reports-header">
+
+                <h2 class="table-title">
+                    Generated Reports History (LEADS_KA Sheet)
+                </h2>
+
+                <div class="generated-actions">
+
+                    <span id="reportCount">
+                        0 Reports
+                    </span>
+
+                    <button
+                        type="button"
+                        class="refresh-history-button"
+                        id="refreshHistoryButton"
+                    >
+                        Refresh History
+                    </button>
+
+                    <button
+                        type="button"
+                        class="clear-history-button"
+                        id="clearHistoryButton"
+                    >
+                        Clear History
+                    </button>
+
+                </div>
+
+            </div>
+
+            <div class="report-table-wrapper">
+
+                <table class="report-table">
+
+                    <thead>
+
+                        <tr>
+
+                            <th>
+                                Date &amp; Time
+                            </th>
+
+                            <th>
+                                Report Month
+                            </th>
+
+                            <th>
+                                Summary
+                            </th>
+
+                            <th>
+                                View PDF
+                            </th>
+
+                            <th>
+                                View Excel
+                            </th>
+
+                            <th>
+                                Download PDF
+                            </th>
+
+                            <th>
+                                Download Excel
+                            </th>
+
+                            <th>
+                                Send Email
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody id="generatedReportsBody">
+
+                        <tr>
+
+                            <td
+                                colspan="8"
+                                class="history-empty"
+                            >
+                                Loading Leads report history...
+                            </td>
+
+                        </tr>
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </section>
+
+</main>
+
+<script>
+
+/* =====================================================
+   API / STATE
+===================================================== */
+
+const API_URL =
+    "http://127.0.0.1:3000/api";
+
+
+const LEADS_STORAGE_KEY =
+    "ka_leads_performance_reports_v1";
+
+
+let leadsLiveData =
+    null;
+
+
+let generatedReports =
+    [];
+
+
+/* =====================================================
+   SIDEBAR
+===================================================== */
+
+const ipDropdown =
+    document.getElementById(
+        "ipDropdown"
+    );
+
+
+const opDropdown =
+    document.getElementById(
+        "opDropdown"
+    );
+
+
+const googleFbDropdown =
+    document.getElementById(
+        "googleFbDropdown"
+    );
+
+
+const ipDropdownButton =
+    document.getElementById(
+        "ipDropdownButton"
+    );
+
+
+const opDropdownButton =
+    document.getElementById(
+        "opDropdownButton"
+    );
+
+
+const googleFbDropdownButton =
+    document.getElementById(
+        "googleFbDropdownButton"
+    );
+
+
+const sidebarDropdowns = [
+    ipDropdown,
+    opDropdown,
+    googleFbDropdown
+]
+    .filter(
+        Boolean
+    );
+
+
+function toggleDropdown(
+    selectedDropdown
+) {
+
+    if (
+        !selectedDropdown
+    ) {
+
+        return;
+
+    }
+
+
+    const shouldOpen =
+        !selectedDropdown
+            .classList
+            .contains(
+                "open"
+            );
+
+
+    sidebarDropdowns.forEach(
+        dropdown => {
+
+            dropdown
+                .classList
+                .remove(
+                    "open"
+                );
+
+        }
+    );
+
+
+    if (
+        shouldOpen
+    ) {
+
+        selectedDropdown
+            .classList
+            .add(
+                "open"
+            );
+
+    }
+
+}
+
+
+if (
+    ipDropdownButton
+) {
+
+    ipDropdownButton.addEventListener(
+        "click",
+        function () {
+
+            toggleDropdown(
+                ipDropdown
+            );
+
+        }
+    );
+
+}
+
+
+if (
+    opDropdownButton
+) {
+
+    opDropdownButton.addEventListener(
+        "click",
+        function () {
+
+            toggleDropdown(
+                opDropdown
+            );
+
+        }
+    );
+
+}
+
+
+if (
+    googleFbDropdownButton
+) {
+
+    googleFbDropdownButton.addEventListener(
+        "click",
+        function () {
+
+            toggleDropdown(
+                googleFbDropdown
+            );
+
+        }
+    );
+
+}
+
+
+function setGoogleFbKarnatakaSidebarState() {
+
+    if (
+        ipDropdown
+    ) {
+
+        ipDropdown
+            .classList
+            .remove(
+                "open"
+            );
+
+    }
+
+
+    if (
+        opDropdown
+    ) {
+
+        opDropdown
+            .classList
+            .remove(
+                "open"
+            );
+
+    }
+
+
+    if (
+        googleFbDropdown
+    ) {
+
+        googleFbDropdown
+            .classList
+            .add(
+                "open"
+            );
+
+    }
+
+
+    if (
+        googleFbDropdownButton
+    ) {
+
+        googleFbDropdownButton
+            .classList
+            .add(
+                "active"
+            );
+
+    }
+
+}
+
+
+setGoogleFbKarnatakaSidebarState();
+
+
+/* =====================================================
+   FORMATTERS
+===================================================== */
+
+function validNumber(
+    value
+) {
+
+    return (
+        value !== null
+        &&
+        value !== undefined
+        &&
+        value !== ""
+        &&
+        Number.isFinite(
+            Number(
+                value
+            )
+        )
+    );
+
+}
+
+
+function numberValue(
+    value
+) {
+
+    return validNumber(
+        value
+    )
+        ?
+        Number(
+            value
+        )
+        :
+        null;
+
+}
+
+
+function formatNumber(
+    value
+) {
+
+    if (
+        !validNumber(
+            value
+        )
+    ) {
+
+        return "N/A";
+
+    }
+
+
+    return new Intl.NumberFormat(
+        "en-IN",
+        {
+            maximumFractionDigits:
+                2
+        }
+    ).format(
+        Number(
+            value
+        )
+    );
+
+}
+
+
+function formatCurrency(
+    value
+) {
+
+    if (
+        !validNumber(
+            value
+        )
+    ) {
+
+        return "N/A";
+
+    }
+
+
+    return new Intl.NumberFormat(
+        "en-IN",
+        {
+            style:
+                "currency",
+
+            currency:
+                "INR",
+
+            maximumFractionDigits:
+                0
+        }
+    ).format(
+        Number(
+            value
+        )
+    );
+
+}
+
+
+function formatPercent(
+    value
+) {
+
+    if (
+        !validNumber(
+            value
+        )
+    ) {
+
+        return "N/A";
+
+    }
+
+
+    return new Intl.NumberFormat(
+        "en-IN",
+        {
+            maximumFractionDigits:
+                2
+        }
+    ).format(
+        Number(
+            value
+        )
+    )
+    +
+    "%";
+
+}
+
+
+function needToAchieve(
+    target,
+    achieved
+) {
+
+    if (
+        !validNumber(
+            target
+        )
+        ||
+        !validNumber(
+            achieved
+        )
+    ) {
+
+        return null;
+
+    }
+
+
+    return Math.max(
+        0,
+        Number(
+            target
+        )
+        -
+        Number(
+            achieved
+        )
+    );
+
+}
+
+
+function statusObject(
+    target,
+    achieved
+) {
+
+    if (
+        !validNumber(
+            target
+        )
+        ||
+        !validNumber(
+            achieved
+        )
+    ) {
+
+        return {
+            type:
+                "missing",
+
+            text:
+                "Data Missing"
+        };
+
+    }
+
+
+    if (
+        Number(
+            achieved
+        )
+        >=
+        Number(
+            target
+        )
+    ) {
+
+        return {
+            type:
+                "success",
+
+            text:
+                "↑ Target Achieved"
+        };
+
+    }
+
+
+    return {
+        type:
+            "failed",
+
+        text:
+            "↓ Target Not Achieved"
+    };
+
+}
+
+
+function statusHTML(
+    target,
+    achieved
+) {
+
+    const status =
+        statusObject(
+            target,
+            achieved
+        );
+
+
+    return `
+        <span class="status status-${status.type}">
+            ${status.text}
+        </span>
+    `;
+
+}
+
+
+/* =====================================================
+   DOM / MESSAGES
+===================================================== */
+
+function setText(
+    id,
+    value
+) {
+
+    const element =
+        document.getElementById(
+            id
+        );
+
+
+    if (
+        element
+    ) {
+
+        element.textContent =
+            value;
+
+    }
+
+}
+
+
+function clearMessages() {
+
+    [
+        "processingMessage",
+        "successMessage",
+        "warningMessage",
+        "errorMessage"
+
+    ].forEach(
+        id => {
+
+            const element =
+                document.getElementById(
+                    id
+                );
+
+
+            element
+                .classList
+                .remove(
+                    "show"
+                );
+
+
+            element.textContent =
+                "";
+
+        }
+    );
+
+}
+
+
+function showMessage(
+    id,
+    text
+) {
+
+    clearMessages();
+
+
+    const element =
+        document.getElementById(
+            id
+        );
+
+
+    element.textContent =
+        text;
+
+
+    element
+        .classList
+        .add(
+            "show"
+        );
+
+}
+
+
+function updateNeedBox(
+    id,
+    target,
+    achieved
+) {
+
+    const box =
+        document.getElementById(
+            id
+        );
+
+
+    if (
+        !box
+    ) {
+
+        return;
+
+    }
+
+
+    const complete =
+        validNumber(
+            target
+        )
+        &&
+        validNumber(
+            achieved
+        )
+        &&
+        Number(
+            achieved
+        )
+        >=
+        Number(
+            target
+        );
+
+
+    box
+        .classList
+        .toggle(
+            "complete",
+            complete
+        );
+
+
+    box
+        .classList
+        .toggle(
+            "need",
+            !complete
+        );
+
+}
+
+
+/* =====================================================
+   RENDER TOTAL CARDS
+===================================================== */
+
+function renderCards(
+    data
+) {
+
+    const ipCount =
+        data
+        &&
+        data.ipCount
+            ?
+            data.ipCount
+            :
+            {};
+
+
+    const ipRevenue =
+        data
+        &&
+        data.ipRevenue
+            ?
+            data.ipRevenue
+            :
+            {};
+
+
+    const leads =
+        data
+        &&
+        data.leads
+            ?
+            data.leads
+            :
+            {};
+
+
+    const opCount =
+        data
+        &&
+        data.opCount
+            ?
+            data.opCount
+            :
+            {};
+
+
+    const leadToOp =
+        data
+        &&
+        data.leadToOp
+            ?
+            data.leadToOp
+            :
+            {};
+
+
+    const opRevenue =
+        data
+        &&
+        data.opRevenue
+            ?
+            data.opRevenue
+            :
+            {};
+
+
+    const ipNeed =
+        needToAchieve(
+            ipCount.target,
+            ipCount.achieved
+        );
+
+
+    const ipRevenueNeed =
+        needToAchieve(
+            ipRevenue.target,
+            ipRevenue.achieved
+        );
+
+
+    const leadsNeed =
+        needToAchieve(
+            leads.target,
+            leads.achieved
+        );
+
+
+    const opRevenueNeed =
+        needToAchieve(
+            opRevenue.target,
+            opRevenue.achieved
+        );
+
+
+    setText(
+        "ipTargetDisplay",
+        formatNumber(
+            ipCount.target
+        )
+    );
+
+
+    setText(
+        "ipAchievedDisplay",
+        formatNumber(
+            ipCount.achieved
+        )
+    );
+
+
+    setText(
+        "ipNeedDisplay",
+        formatNumber(
+            ipNeed
+        )
+    );
+
+
+    updateNeedBox(
+        "ipNeedBox",
+        ipCount.target,
+        ipCount.achieved
+    );
+
+
+    setText(
+        "ipRevenueTargetDisplay",
+        formatCurrency(
+            ipRevenue.target
+        )
+    );
+
+
+    setText(
+        "ipRevenueAchievedDisplay",
+        formatCurrency(
+            ipRevenue.achieved
+        )
+    );
+
+
+    setText(
+        "ipRevenueNeedDisplay",
+        formatCurrency(
+            ipRevenueNeed
+        )
+    );
+
+
+    updateNeedBox(
+        "ipRevenueNeedBox",
+        ipRevenue.target,
+        ipRevenue.achieved
+    );
+
+
+    setText(
+        "leadsTargetDisplay",
+        formatNumber(
+            leads.target
+        )
+    );
+
+
+    setText(
+        "leadsAchievedDisplay",
+        formatNumber(
+            leads.achieved
+        )
+    );
+
+
+    setText(
+        "leadsNeedDisplay",
+        formatNumber(
+            leadsNeed
+        )
+    );
+
+
+    updateNeedBox(
+        "leadsNeedBox",
+        leads.target,
+        leads.achieved
+    );
+
+
+    setText(
+        "opTargetDisplay",
+        formatNumber(
+            opCount.target
+        )
+    );
+
+
+    setText(
+        "opAchievedDisplay",
+        formatNumber(
+            opCount.achieved
+        )
+    );
+
+
+    setText(
+        "leadToOpTargetDisplay",
+        formatPercent(
+            leadToOp.target
+        )
+    );
+
+
+    setText(
+        "leadToOpAchievedDisplay",
+        formatPercent(
+            leadToOp.achieved
+        )
+    );
+
+
+    setText(
+        "opRevenueTargetDisplay",
+        formatCurrency(
+            opRevenue.target
+        )
+    );
+
+
+    setText(
+        "opRevenueAchievedDisplay",
+        formatCurrency(
+            opRevenue.achieved
+        )
+    );
+
+
+    setText(
+        "opRevenueNeedDisplay",
+        formatCurrency(
+            opRevenueNeed
+        )
+    );
+
+
+    updateNeedBox(
+        "opRevenueNeedBox",
+        opRevenue.target,
+        opRevenue.achieved
+    );
+
+
+    document
+        .getElementById(
+            "ipResult"
+        )
+        .innerHTML =
+            statusHTML(
+                ipCount.target,
+                ipCount.achieved
+            );
+
+
+    document
+        .getElementById(
+            "ipRevenueResult"
+        )
+        .innerHTML =
+            statusHTML(
+                ipRevenue.target,
+                ipRevenue.achieved
+            );
+
+
+    document
+        .getElementById(
+            "leadsResult"
+        )
+        .innerHTML =
+            statusHTML(
+                leads.target,
+                leads.achieved
+            );
+
+
+    document
+        .getElementById(
+            "opResult"
+        )
+        .innerHTML =
+            statusHTML(
+                opCount.target,
+                opCount.achieved
+            );
+
+
+    document
+        .getElementById(
+            "leadToOpResult"
+        )
+        .innerHTML =
+            statusHTML(
+                leadToOp.target,
+                leadToOp.achieved
+            );
+
+
+    document
+        .getElementById(
+            "opRevenueResult"
+        )
+        .innerHTML =
+            statusHTML(
+                opRevenue.target,
+                opRevenue.achieved
+            );
+
+}
+
+
+function renderPerformanceSummary(
+    data
+) {
+
+    const body =
+        document.getElementById(
+            "performanceSummaryBody"
+        );
+
+
+    const ipCount =
+        data.ipCount
+        ||
+        {};
+
+
+    const ipRevenue =
+        data.ipRevenue
+        ||
+        {};
+
+
+    const leads =
+        data.leads
+        ||
+        {};
+
+
+    const opCount =
+        data.opCount
+        ||
+        {};
+
+
+    const leadToOp =
+        data.leadToOp
+        ||
+        {};
+
+
+    const opRevenue =
+        data.opRevenue
+        ||
+        {};
+
+
+    const ipNeed =
+        needToAchieve(
+            ipCount.target,
+            ipCount.achieved
+        );
+
+
+    const ipRevenueNeed =
+        needToAchieve(
+            ipRevenue.target,
+            ipRevenue.achieved
+        );
+
+
+    const leadsNeed =
+        needToAchieve(
+            leads.target,
+            leads.achieved
+        );
+
+
+    const opRevenueNeed =
+        needToAchieve(
+            opRevenue.target,
+            opRevenue.achieved
+        );
+
+
+    body.innerHTML = `
+        <tr>
+            <td>IP Count</td>
+            <td>${formatNumber(ipCount.target)}</td>
+            <td>${formatNumber(ipCount.achieved)}</td>
+            <td>${statusHTML(ipCount.target, ipCount.achieved)}</td>
+        </tr>
+
+        <tr>
+            <td>IP Count Need to Achieve</td>
+            <td>N/A</td>
+            <td>${formatNumber(ipNeed)}</td>
+            <td>${statusHTML(ipCount.target, ipCount.achieved)}</td>
+        </tr>
+
+        <tr>
+            <td>IP Revenue</td>
+            <td>${formatCurrency(ipRevenue.target)}</td>
+            <td>${formatCurrency(ipRevenue.achieved)}</td>
+            <td>${statusHTML(ipRevenue.target, ipRevenue.achieved)}</td>
+        </tr>
+
+        <tr>
+            <td>IP Revenue Need to Achieve</td>
+            <td>N/A</td>
+            <td>${formatCurrency(ipRevenueNeed)}</td>
+            <td>${statusHTML(ipRevenue.target, ipRevenue.achieved)}</td>
+        </tr>
+
+        <tr>
+            <td>Leads</td>
+            <td>${formatNumber(leads.target)}</td>
+            <td>${formatNumber(leads.achieved)}</td>
+            <td>${statusHTML(leads.target, leads.achieved)}</td>
+        </tr>
+
+        <tr>
+            <td>Leads Need to Achieve</td>
+            <td>N/A</td>
+            <td>${formatNumber(leadsNeed)}</td>
+            <td>${statusHTML(leads.target, leads.achieved)}</td>
+        </tr>
+
+        <tr>
+            <td>OP Count</td>
+            <td>${formatNumber(opCount.target)}</td>
+            <td>${formatNumber(opCount.achieved)}</td>
+            <td>${statusHTML(opCount.target, opCount.achieved)}</td>
+        </tr>
+
+        <tr>
+            <td>Lead → OP Conversion</td>
+            <td>${formatPercent(leadToOp.target)}</td>
+            <td>${formatPercent(leadToOp.achieved)}</td>
+            <td>${statusHTML(leadToOp.target, leadToOp.achieved)}</td>
+        </tr>
+
+        <tr>
+            <td>OP Revenue</td>
+            <td>${formatCurrency(opRevenue.target)}</td>
+            <td>${formatCurrency(opRevenue.achieved)}</td>
+            <td>${statusHTML(opRevenue.target, opRevenue.achieved)}</td>
+        </tr>
+
+        <tr>
+            <td>OP Revenue Need to Achieve</td>
+            <td>N/A</td>
+            <td>${formatCurrency(opRevenueNeed)}</td>
+            <td>${statusHTML(opRevenue.target, opRevenue.achieved)}</td>
+        </tr>
+    `;
+
+}
+
+
+/* =====================================================
+   LIVE DATA
+===================================================== */
+
+async function refreshLiveData() {
+
+    clearMessages();
+
+
+    const button =
+        document.getElementById(
+            "refreshLiveDataButton"
+        );
+
+
+    const originalText =
+        button.textContent;
+
+
+    button.disabled =
+        true;
+
+
+    button.textContent =
+        "Loading...";
+
+
+    showMessage(
+        "processingMessage",
+        "Reading Karnataka IP Count, IP Revenue, Leads, Lead → OP Conversion and OP Revenue..."
+    );
+
+
+    try {
+
+        const response =
+            await fetch(
+                `${API_URL}/reports/leads/ka/live-input`,
+                {
+                    method:
+                        "GET",
+
+                    credentials:
+                        "include",
+
+                    cache:
+                        "no-store"
+                }
+            );
+
+
+        let result =
+            {};
+
+
+        try {
+
+            result =
+                await response.json();
+
+        }
+        catch (
+            error
+        ) {
+
+            result =
+                {};
+
+        }
+
+
+        if (
+            response.status ===
+            401
+        ) {
+
+            window.location.href =
+                "../login.html";
+
+            return;
+
+        }
+
+
+        if (
+            !response.ok
+            ||
+            !result.success
+        ) {
+
+            throw new Error(
+                result.message
+                ||
+                `Unable to load Leads data. Server returned ${response.status}.`
+            );
+
+        }
+
+
+        leadsLiveData =
+            result;
+
+
+        renderCards(
+            result.totals
+            ||
+            {}
+        );
+
+
+        renderPerformanceSummary(
+            result.totals
+            ||
+            {}
+        );
+
+
+        setText(
+            "liveSourceInfo",
+            "Loaded live source: "
+            +
+            (
+                result.sourceColumn
+                ||
+                "Karnataka"
+            )
+            +
+            " only."
+        );
+
+
+        const failures =
+            Array.isArray(
+                result.failures
+            )
+                ?
+                result.failures
+                :
+                [];
+
+
+        if (
+            failures.length
+        ) {
+
+            showMessage(
+                "warningMessage",
+                "Karnataka Leads data loaded with a warning: "
+                +
+                failures
+                    .map(
+                        item =>
+                            `${item.label}: ${item.message}`
+                    )
+                    .join(
+                        " | "
+                    )
+            );
+
+        }
+        else {
+
+            showMessage(
+                "successMessage",
+                "Karnataka IP Count, IP Revenue, Leads, Lead → OP Conversion and OP Revenue loaded successfully."
+            );
+
+        }
+
+    }
+    catch (
+        error
+    ) {
+
+        console.error(
+            "Leads live data error:",
+            error
+        );
+
+
+        showMessage(
+            "errorMessage",
+            error.message
+            ||
+            "Unable to load Karnataka Leads live data."
+        );
+
+    }
+    finally {
+
+        button.disabled =
+            false;
+
+
+        button.textContent =
+            originalText;
+
+    }
+
+}
+
+
+/* =====================================================
+   REPORT DATA
+===================================================== */
+
+function getReportData() {
+
+    if (
+        !leadsLiveData
+        ||
+        !leadsLiveData.totals
+    ) {
+
+        return null;
+
+    }
+
+
+    return {
+
+        sourceKey:
+            "KA",
+
+        sourceColumn:
+            leadsLiveData.sourceColumn
+            ||
+            "Karnataka",
+
+        ipCount:
+            leadsLiveData.totals.ipCount
+            ||
+            {
+                target:
+                    null,
+
+                achieved:
+                    null
+            },
+
+        ipRevenue:
+            leadsLiveData.totals.ipRevenue
+            ||
+            {
+                target:
+                    null,
+
+                achieved:
+                    null
+            },
+
+        leads:
+            leadsLiveData.totals.leads
+            ||
+            {
+                target:
+                    null,
+
+                achieved:
+                    null
+            },
+
+        opCount:
+            leadsLiveData.totals.opCount
+            ||
+            {
+                target:
+                    null,
+
+                achieved:
+                    null
+            },
+
+        leadToOp:
+            leadsLiveData.totals.leadToOp
+            ||
+            {
+                target:
+                    null,
+
+                achieved:
+                    null
+            },
+
+        opRevenue:
+            leadsLiveData.totals.opRevenue
+            ||
+            {
+                target:
+                    null,
+
+                achieved:
+                    null
+            }
+
+    };
+
+}
+
+
+/* =====================================================
+   HISTORY HELPERS
+===================================================== */
+
+function getMonthName(
+    monthValue
+) {
+
+    if (
+        !monthValue
+    ) {
+
+        return "";
+
+    }
+
+
+    const parts =
+        String(
+            monthValue
+        )
+            .split(
+                "-"
+            );
+
+
+    if (
+        parts.length !==
+        2
+    ) {
+
+        return monthValue;
+
+    }
+
+
+    return new Date(
+        Number(
+            parts[0]
+        ),
+        Number(
+            parts[1]
+        ) - 1,
+        1
+    )
+        .toLocaleDateString(
+            "en-IN",
+            {
+                month:
+                    "long",
+
+                year:
+                    "numeric"
+            }
+        );
+
+}
+
+
+function formatDateTime(
+    value
+) {
+
+    if (
+        !value
+    ) {
+
+        return "N/A";
+
+    }
+
+
+    const date =
+        new Date(
+            value
+        );
+
+
+    if (
+        Number.isNaN(
+            date.getTime()
+        )
+    ) {
+
+        return String(
+            value
+        );
+
+    }
+
+
+    return date
+        .toLocaleString(
+            "en-IN"
+        );
+
+}
+
+
+function getHistorySummary(
+    report
+) {
+
+    if (
+        report
+        &&
+        report.summary
+    ) {
+
+        return report.summary;
+
+    }
+
+
+    const data =
+        report
+        &&
+        report.data
+            ?
+            report.data
+            :
+            {};
+
+
+    const ipCount =
+        data.ipCount
+        ||
+        {};
+
+
+    const ipRevenue =
+        data.ipRevenue
+        ||
+        {};
+
+
+    const leads =
+        data.leads
+        ||
+        {};
+
+
+    const opCount =
+        data.opCount
+        ||
+        {};
+
+
+    const leadToOp =
+        data.leadToOp
+        ||
+        {};
+
+
+    const opRevenue =
+        data.opRevenue
+        ||
+        {};
+
+
+    const ipNeed =
+        needToAchieve(
+            ipCount.target,
+            ipCount.achieved
+        );
+
+
+    const ipRevenueNeed =
+        needToAchieve(
+            ipRevenue.target,
+            ipRevenue.achieved
+        );
+
+
+    const leadsNeed =
+        needToAchieve(
+            leads.target,
+            leads.achieved
+        );
+
+
+    const opRevenueNeed =
+        needToAchieve(
+            opRevenue.target,
+            opRevenue.achieved
+        );
+
+
+    return [
+        `IP Count: ${formatNumber(ipCount.target)} / ${formatNumber(ipCount.achieved)}`,
+        `IP Need: ${formatNumber(ipNeed)}`,
+        `IP Revenue: ${formatCurrency(ipRevenue.target)} / ${formatCurrency(ipRevenue.achieved)}`,
+        `IP Revenue Need: ${formatCurrency(ipRevenueNeed)}`,
+        `Karnataka Leads: ${formatNumber(leads.target)} / ${formatNumber(leads.achieved)}`,
+        `Leads Need: ${formatNumber(leadsNeed)}`,
+        `OP Count: ${formatNumber(opCount.target)} / ${formatNumber(opCount.achieved)}`,
+        `Lead → OP: ${formatPercent(leadToOp.target)} / ${formatPercent(leadToOp.achieved)}`,
+        `OP Revenue: ${formatCurrency(opRevenue.target)} / ${formatCurrency(opRevenue.achieved)}`,
+        `OP Revenue Need: ${formatCurrency(opRevenueNeed)}`
+    ].join(
+        " | "
+    );
+
+}
+
+
+function findDriveFile(
+    report,
+    type
+) {
+
+    const files =
+        report
+        &&
+        Array.isArray(
+            report.driveFiles
+        )
+            ?
+            report.driveFiles
+            :
+            [];
+
+
+    return files.find(
+        file =>
+            String(
+                file.type
+                ||
+                ""
+            )
+                .toLowerCase()
+            ===
+            String(
+                type
+            )
+                .toLowerCase()
+    )
+    ||
+    null;
+
+}
+
+
+function findGeneratedReport(
+    reportId
+) {
+
+    return generatedReports.find(
+        report =>
+            String(
+                report.id
+            )
+            ===
+            String(
+                reportId
+            )
+    )
+    ||
+    null;
+
+}
+
+
+function driveDownloadUrl(
+    url
+) {
+
+    const text =
+        String(
+            url
+            ||
+            ""
+        );
+
+
+    const match =
+        text.match(
+            /\/d\/([^/]+)/
+        );
+
+
+    if (
+        match
+        &&
+        match[1]
+    ) {
+
+        return (
+            "https://drive.google.com/uc?export=download&id="
+            +
+            encodeURIComponent(
+                match[1]
+            )
+        );
+
+    }
+
+
+    return text;
+
+}
+
+
+function persistGeneratedReports() {
+
+    try {
+
+        localStorage.setItem(
+            LEADS_STORAGE_KEY,
+            JSON.stringify(
+                generatedReports
+            )
+        );
+
+    }
+    catch (
+        error
+    ) {
+
+        console.warn(
+            "Unable to cache Leads history:",
+            error
+        );
+
+    }
+
+}
+
+
+function loadCachedGeneratedReports() {
+
+    try {
+
+        const value =
+            localStorage.getItem(
+                LEADS_STORAGE_KEY
+            );
+
+
+        if (
+            value
+        ) {
+
+            const parsed =
+                JSON.parse(
+                    value
+                );
+
+
+            if (
+                Array.isArray(
+                    parsed
+                )
+            ) {
+
+                generatedReports =
+                    parsed;
+
+            }
+
+        }
+
+    }
+    catch (
+        error
+    ) {
+
+        generatedReports =
+            [];
+
+    }
+
+}
+
+
+function renderGeneratedReports() {
+
+    const body =
+        document.getElementById(
+            "generatedReportsBody"
+        );
+
+
+    const count =
+        document.getElementById(
+            "reportCount"
+        );
+
+
+    count.textContent =
+        `${generatedReports.length} Report${generatedReports.length === 1 ? "" : "s"}`;
+
+
+    body.innerHTML =
+        "";
+
+
+    if (
+        generatedReports.length ===
+        0
+    ) {
+
+        body.innerHTML = `
+            <tr>
+                <td
+                    colspan="8"
+                    class="history-empty"
+                >
+                    No Leads generated reports found.
+                </td>
+            </tr>
+        `;
+
+        return;
+
+    }
+
+
+    generatedReports.forEach(
+        report => {
+
+            const row =
+                document.createElement(
+                    "tr"
+                );
+
+
+            row.innerHTML = `
+                <td>${formatDateTime(report.createdAt)}</td>
+
+                <td>
+                    <strong>
+                        ${report.reportMonthName || getMonthName(report.reportMonth)}
+                    </strong>
+                </td>
+
+                <td class="history-summary">
+                    ${getHistorySummary(report)}
+                </td>
+
+                <td>
+                    <button
+                        type="button"
+                        class="table-button view-pdf"
+                        data-action="view-pdf"
+                        data-report-id="${report.id}"
+                    >
+                        View PDF
+                    </button>
+                </td>
+
+                <td>
+                    <button
+                        type="button"
+                        class="table-button view-excel"
+                        data-action="view-excel"
+                        data-report-id="${report.id}"
+                    >
+                        View Excel
+                    </button>
+                </td>
+
+                <td>
+                    <button
+                        type="button"
+                        class="table-button download-pdf"
+                        data-action="download-pdf"
+                        data-report-id="${report.id}"
+                    >
+                        Download PDF
+                    </button>
+                </td>
+
+                <td>
+                    <button
+                        type="button"
+                        class="table-button download-excel"
+                        data-action="download-excel"
+                        data-report-id="${report.id}"
+                    >
+                        Download Excel
+                    </button>
+                </td>
+
+                <td>
+                    <button
+                        type="button"
+                        class="table-button send-mail"
+                        data-action="send-email"
+                        data-report-id="${report.id}"
+                    >
+                        Send Email (2)
+                    </button>
+                </td>
+            `;
+
+
+            body.appendChild(
+                row
+            );
+
+        }
+    );
+
+}
+
+
+/* =====================================================
+   LOAD HISTORY
+===================================================== */
+
+async function loadGeneratedReports(
+    silent =
+        false
+) {
+
+    try {
+
+        const response =
+            await fetch(
+                `${API_URL}/reports/leads/ka/generated-reports`,
+                {
+                    method:
+                        "GET",
+
+                    credentials:
+                        "include"
+                }
+            );
+
+
+        let result =
+            {};
+
+
+        try {
+
+            result =
+                await response.json();
+
+        }
+        catch (
+            error
+        ) {
+
+            result =
+                {};
+
+        }
+
+
+        if (
+            response.status ===
+            401
+        ) {
+
+            window.location.href =
+                "../login.html";
+
+            return;
+
+        }
+
+
+        if (
+            !response.ok
+            ||
+            !result.success
+        ) {
+
+            throw new Error(
+                result.message
+                ||
+                "Unable to load Leads report history."
+            );
+
+        }
+
+
+        const cachedById =
+            new Map(
+                generatedReports.map(
+                    report => [
+                        String(
+                            report.id
+                        ),
+                        report
+                    ]
+                )
+            );
+
+
+        generatedReports =
+            (
+                Array.isArray(
+                    result.reports
+                )
+                    ?
+                    result.reports
+                    :
+                    []
+            )
+                .map(
+                    report => {
+
+                        const cached =
+                            cachedById.get(
+                                String(
+                                    report.id
+                                )
+                            );
+
+
+                        if (
+                            cached
+                            &&
+                            (
+                                !report.data
+                                ||
+                                !Array.isArray(
+                                    report.data.states
+                                )
+                            )
+                        ) {
+
+                            return {
+
+                                ...report,
+
+                                data:
+                                    cached.data
+
+                            };
+
+                        }
+
+
+                        return report;
+
+                    }
+                );
+
+
+        persistGeneratedReports();
+
+        renderGeneratedReports();
+
+    }
+    catch (
+        error
+    ) {
+
+        console.error(
+            "Leads history error:",
+            error
+        );
+
+
+        if (
+            !silent
+        ) {
+
+            showMessage(
+                "errorMessage",
+                error.message
+                ||
+                "Unable to load Leads report history."
+            );
+
+        }
+
+
+        renderGeneratedReports();
+
+    }
+
+}
+
+
+/* =====================================================
+   GENERATE REPORT
+===================================================== */
+
+async function generateReport() {
+
+    const button =
+        document.getElementById(
+            "generateReportButton"
+        );
+
+
+    const originalText =
+        button.textContent;
+
+
+    try {
+
+        if (
+            !leadsLiveData
+        ) {
+
+            await refreshLiveData();
+
+        }
+
+
+        const data =
+            getReportData();
+
+
+        if (
+            !data
+        ) {
+
+            throw new Error(
+                "Leads live data is not available. Refresh live data first."
+            );
+
+        }
+
+
+        const reportMonth =
+            document
+                .getElementById(
+                    "reportMonth"
+                )
+                .value;
+
+
+        if (
+            !reportMonth
+        ) {
+
+            throw new Error(
+                "Please select a report month."
+            );
+
+        }
+
+
+        const report = {
+
+            id:
+                Date.now(),
+
+            reportMonth:
+                reportMonth,
+
+            reportMonthName:
+                getMonthName(
+                    reportMonth
+                ),
+
+            createdAt:
+                new Date()
+                    .toISOString(),
+
+            data:
+                data
+
+        };
+
+
+        button.disabled =
+            true;
+
+
+        button.textContent =
+            "Generating...";
+
+
+        showMessage(
+            "processingMessage",
+            "Generating Karnataka Leads PDF and Excel and saving them to Google Drive..."
+        );
+
+
+        const response =
+            await fetch(
+                `${API_URL}/reports/leads/ka/save-drive`,
+                {
+                    method:
+                        "POST",
+
+                    credentials:
+                        "include",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body:
+                        JSON.stringify({
+
+                            reportId:
+                                report.id,
+
+                            reportMonth:
+                                report.reportMonth,
+
+                            reportMonthName:
+                                report.reportMonthName,
+
+                            createdAt:
+                                report.createdAt,
+
+                            data:
+                                report.data
+
+                        })
+                }
+            );
+
+
+        const result =
+            await response.json();
+
+
+        if (
+            !response.ok
+            ||
+            !result.success
+        ) {
+
+            throw new Error(
+                result.message
+                ||
+                "Unable to generate Leads report."
+            );
+
+        }
+
+
+        generatedReports.unshift({
+
+            ...report,
+
+            driveFiles:
+                Array.isArray(
+                    result.files
+                )
+                    ?
+                    result.files.map(
+                        file => ({
+
+                            type:
+                                String(
+                                    file.mimeType
+                                    ||
+                                    ""
+                                )
+                                    .includes(
+                                        "pdf"
+                                    )
+                                        ?
+                                        "pdf"
+                                        :
+                                        "excel",
+
+                            name:
+                                file.name,
+
+                            url:
+                                file.url
+
+                        })
+                    )
+                    :
+                    [],
+
+            driveFolderUrl:
+                result.folderUrl
+                ||
+                "",
+
+            sheetUrl:
+                result.sheetUrl
+                ||
+                ""
+
+        });
+
+
+        persistGeneratedReports();
+
+
+        await loadGeneratedReports(
+            true
+        );
+
+
+        showMessage(
+            "successMessage",
+            "Karnataka Leads PDF and Excel generated successfully and added to history."
+        );
+
+    }
+    catch (
+        error
+    ) {
+
+        console.error(
+            "Generate Leads report error:",
+            error
+        );
+
+
+        showMessage(
+            "errorMessage",
+            error.message
+            ||
+            "Unable to generate Leads report."
+        );
+
+    }
+    finally {
+
+        button.disabled =
+            false;
+
+
+        button.textContent =
+            originalText;
+
+    }
+
+}
+
+
+/* =====================================================
+   VIEW / DOWNLOAD
+===================================================== */
+
+function openReportFile(
+    reportId,
+    type,
+    download =
+        false
+) {
+
+    const report =
+        findGeneratedReport(
+            reportId
+        );
+
+
+    if (
+        !report
+    ) {
+
+        alert(
+            "Report not found."
+        );
+
+        return;
+
+    }
+
+
+    const file =
+        findDriveFile(
+            report,
+            type
+        );
+
+
+    if (
+        !file
+        ||
+        !file.url
+    ) {
+
+        alert(
+            `Stored ${type === "pdf" ? "PDF" : "Excel"} file is not available.`
+        );
+
+        return;
+
+    }
+
+
+    const url =
+        download
+            ?
+            driveDownloadUrl(
+                file.url
+            )
+            :
+            file.url;
+
+
+    window.open(
+        url,
+        "_blank",
+        "noopener,noreferrer"
+    );
+
+}
+
+
+/* =====================================================
+   SEND EMAIL
+===================================================== */
+
+async function sendReportEmail(
+    reportId,
+    button
+) {
+
+    const report =
+        findGeneratedReport(
+            reportId
+        );
+
+
+    if (
+        !report
+    ) {
+
+        alert(
+            "Report not found."
+        );
+
+        return;
+
+    }
+
+
+    const originalText =
+        button.textContent;
+
+
+    button.disabled =
+        true;
+
+
+    button.textContent =
+        "Sending...";
+
+
+    try {
+
+        const response =
+            await fetch(
+                `${API_URL}/reports/leads/ka/send-email`,
+                {
+                    method:
+                        "POST",
+
+                    credentials:
+                        "include",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body:
+                        JSON.stringify({
+
+                            reportId:
+                                report.id,
+
+                            reportMonth:
+                                report.reportMonth,
+
+                            reportMonthName:
+                                report.reportMonthName,
+
+                            createdAt:
+                                report.createdAt,
+
+                            data:
+                                report.data
+
+                        })
+                }
+            );
+
+
+        const result =
+            await response.json();
+
+
+        if (
+            !response.ok
+            ||
+            !result.success
+        ) {
+
+            throw new Error(
+                result.message
+                ||
+                "Unable to send Leads report email."
+            );
+
+        }
+
+
+        alert(
+            result.message
+            ||
+            "Karnataka Leads report sent successfully to both configured recipients."
+        );
+
+    }
+    catch (
+        error
+    ) {
+
+        alert(
+            error.message
+            ||
+            "Unable to send Leads report email."
+        );
+
+    }
+    finally {
+
+        button.disabled =
+            false;
+
+
+        button.textContent =
+            originalText;
+
+    }
+
+}
+
+
+/* =====================================================
+   CLEAR HISTORY
+===================================================== */
+
+async function clearHistory() {
+
+    const confirmed =
+        window.confirm(
+            "Clear the LEADS_KA generated report history? Drive files will not be deleted."
+        );
+
+
+    if (
+        !confirmed
+    ) {
+
+        return;
+
+    }
+
+
+    try {
+
+        const response =
+            await fetch(
+                `${API_URL}/reports/leads/ka/generated-reports`,
+                {
+                    method:
+                        "DELETE",
+
+                    credentials:
+                        "include"
+                }
+            );
+
+
+        const result =
+            await response.json();
+
+
+        if (
+            !response.ok
+            ||
+            !result.success
+        ) {
+
+            throw new Error(
+                result.message
+                ||
+                "Unable to clear Leads history."
+            );
+
+        }
+
+
+        generatedReports =
+            [];
+
+
+        persistGeneratedReports();
+
+        renderGeneratedReports();
+
+        alert(
+            result.message
+            ||
+            "Leads history cleared."
+        );
+
+    }
+    catch (
+        error
+    ) {
+
+        alert(
+            error.message
+            ||
+            "Unable to clear Leads history."
+        );
+
+    }
+
+}
+
+
+/* =====================================================
+   HISTORY BUTTON EVENTS
+===================================================== */
+
+document
+    .getElementById(
+        "generatedReportsBody"
+    )
+    .addEventListener(
+        "click",
+        function (
+            event
+        ) {
+
+            const button =
+                event.target.closest(
+                    "button[data-action]"
+                );
+
+
+            if (
+                !button
+            ) {
+
+                return;
+
+            }
+
+
+            const action =
+                button.dataset.action;
+
+
+            const reportId =
+                button.dataset.reportId;
+
+
+            if (
+                action ===
+                "view-pdf"
+            ) {
+
+                openReportFile(
+                    reportId,
+                    "pdf",
+                    false
+                );
+
+            }
+            else if (
+                action ===
+                "view-excel"
+            ) {
+
+                openReportFile(
+                    reportId,
+                    "excel",
+                    false
+                );
+
+            }
+            else if (
+                action ===
+                "download-pdf"
+            ) {
+
+                openReportFile(
+                    reportId,
+                    "pdf",
+                    true
+                );
+
+            }
+            else if (
+                action ===
+                "download-excel"
+            ) {
+
+                openReportFile(
+                    reportId,
+                    "excel",
+                    true
+                );
+
+            }
+            else if (
+                action ===
+                "send-email"
+            ) {
+
+                sendReportEmail(
+                    reportId,
+                    button
+                );
+
+            }
+
+        }
+    );
+
+
+/* =====================================================
+   ADMIN / LOGOUT
+===================================================== */
+
+async function loadAdminProfile() {
+
+    try {
+
+        const response =
+            await fetch(
+                `${API_URL}/super-admin/dashboard`,
+                {
+                    method:
+                        "GET",
+
+                    credentials:
+                        "include"
+                }
+            );
+
+
+        if (
+            response.status ===
+            401
+        ) {
+
+            window.location.href =
+                "../login.html";
+
+            return;
+
+        }
+
+
+        const data =
+            await response.json();
+
+
+        if (
+            data
+            &&
+            data.admin
+        ) {
+
+            setText(
+                "adminName",
+                data.admin.name
+                ||
+                "Super Admin"
+            );
+
+
+            setText(
+                "adminEmail",
+                data.admin.email
+                ||
+                ""
+            );
+
+        }
+
+    }
+    catch (
+        error
+    ) {
+
+        console.error(
+            "Admin profile error:",
+            error
+        );
+
+    }
+
+}
+
+
+document
+    .getElementById(
+        "logoutButton"
+    )
+    .addEventListener(
+        "click",
+        async function () {
+
+            try {
+
+                await fetch(
+                    `${API_URL}/logout`,
+                    {
+                        method:
+                            "POST",
+
+                        credentials:
+                            "include"
+                    }
+                );
+
+            }
+            catch (
+                error
+            ) {
+
+                console.error(
+                    "Logout error:",
+                    error
+                );
+
+            }
+
+
+            window.location.href =
+                "../login.html";
+
+        }
+    );
+
+
+/* =====================================================
+   INITIALIZE
+===================================================== */
+
+function setCurrentMonth() {
+
+    const now =
+        new Date();
+
+
+    const value =
+        now.getFullYear()
+        +
+        "-"
+        +
+        String(
+            now.getMonth() + 1
+        )
+            .padStart(
+                2,
+                "0"
+            );
+
+
+    document
+        .getElementById(
+            "reportMonth"
+        )
+        .value =
+            value;
+
+}
+
+
+document
+    .getElementById(
+        "refreshLiveDataButton"
+    )
+    .addEventListener(
+        "click",
+        refreshLiveData
+    );
+
+
+document
+    .getElementById(
+        "generateReportButton"
+    )
+    .addEventListener(
+        "click",
+        generateReport
+    );
+
+
+document
+    .getElementById(
+        "refreshHistoryButton"
+    )
+    .addEventListener(
+        "click",
+        function () {
+
+            loadGeneratedReports(
+                false
+            );
+
+        }
+    );
+
+
+document
+    .getElementById(
+        "clearHistoryButton"
+    )
+    .addEventListener(
+        "click",
+        clearHistory
+    );
+
+
+setCurrentMonth();
+
+loadCachedGeneratedReports();
+
+renderGeneratedReports();
+
+loadAdminProfile();
+
+refreshLiveData();
+
+loadGeneratedReports(
+    true
+);
+
+</script>
+
+</body>
+
+</html>

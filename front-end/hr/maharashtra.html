@@ -1,0 +1,1106 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <title>Maharashtra HR Performance Report</title>
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      :root {
+        --bg: #f4f7fb;
+        --card: #fff;
+        --text: #0f172a;
+        --muted: #64748b;
+        --border: #dbe4f0;
+        --primary: #2563eb;
+        --ok: #15803d;
+        --warn: #c2410c;
+        --danger: #b91c1c;
+        --soft: #f8fafc;
+      }
+      body {
+        font-family:
+          Inter,
+          system-ui,
+          -apple-system,
+          "Segoe UI",
+          sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        min-height: 100vh;
+      }
+      header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+        padding: 20px 28px;
+        background: #fff;
+        border-bottom: 1px solid var(--border);
+        position: sticky;
+        top: 0;
+        z-index: 5;
+      }
+      header h1 {
+        font-size: 24px;
+      }
+      header p {
+        margin-top: 4px;
+        color: var(--muted);
+        font-size: 13px;
+      }
+      .back {
+        padding: 10px 14px;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        color: var(--text);
+        text-decoration: none;
+        font-weight: 700;
+        background: #fff;
+      }
+      main {
+        width: min(1500px, calc(100% - 40px));
+        margin: 26px auto 50px;
+      }
+      .panel,
+      .sum-card,
+      .position-card,
+      .summary-report,
+      .report-actions {
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        box-shadow: 0 10px 28px rgba(15, 23, 42, 0.07);
+      }
+      .controls {
+        display: grid;
+        grid-template-columns: minmax(220px, 1fr) minmax(220px, 300px) auto;
+        gap: 14px;
+        align-items: end;
+        padding: 20px;
+      }
+      label {
+        display: block;
+        margin-bottom: 7px;
+        font-size: 13px;
+        font-weight: 800;
+        color: #334155;
+      }
+      .fixed-source,
+      input[type="month"] {
+        width: 100%;
+        min-height: 46px;
+        padding: 0 14px;
+        border: 1px solid #cbd5e1;
+        border-radius: 10px;
+        background: #fff;
+        color: var(--text);
+        font: inherit;
+      }
+      .fixed-source {
+        display: flex;
+        align-items: center;
+        background: #f8fafc;
+        font-weight: 800;
+        color: #1e3a8a;
+      }
+      button {
+        font: inherit;
+        min-height: 46px;
+        padding: 0 18px;
+        border: 0;
+        border-radius: 10px;
+        background: var(--primary);
+        color: #fff;
+        font-weight: 800;
+        cursor: pointer;
+      }
+      button:hover {
+        filter: brightness(0.96);
+      }
+      button:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+      .secondary {
+        background: #0f172a;
+      }
+      .danger-btn {
+        background: #dc2626;
+      }
+      .light-btn {
+        background: #dbeafe;
+        color: #1d4ed8;
+      }
+      .note,
+      .msg {
+        margin-top: 14px;
+        padding: 12px 14px;
+        border-radius: 10px;
+        font-size: 13px;
+      }
+      .note {
+        background: #eff6ff;
+        color: #1e40af;
+      }
+      .msg {
+        display: none;
+      }
+      .msg.show {
+        display: block;
+      }
+      .processing {
+        background: #f1f5f9;
+        color: #475569;
+      }
+      .success {
+        background: #dcfce7;
+        color: var(--ok);
+      }
+      .error {
+        background: #fee2e2;
+        color: var(--danger);
+      }
+      .summary {
+        display: grid;
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+        gap: 14px;
+        margin-top: 20px;
+      }
+      .sum-card {
+        padding: 18px;
+      }
+      .sum-card span {
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--muted);
+      }
+      .sum-card strong {
+        display: block;
+        margin-top: 8px;
+        font-size: 27px;
+      }
+      .section-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: end;
+        gap: 12px;
+        margin: 28px 2px 14px;
+      }
+      .section-head h2 {
+        font-size: 22px;
+      }
+      .section-head p {
+        margin-top: 4px;
+        font-size: 13px;
+        color: var(--muted);
+      }
+      .badge {
+        padding: 6px 9px;
+        border-radius: 999px;
+        background: #e0e7ff;
+        color: #3730a3;
+        font-size: 12px;
+        font-weight: 800;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 18px;
+      }
+      .position-card {
+        padding: 20px;
+        position: relative;
+        overflow: hidden;
+      }
+      .position-card:before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 4px;
+        background: var(--primary);
+      }
+      .card-head {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        align-items: flex-start;
+      }
+      .card-head h3 {
+        font-size: 18px;
+      }
+      .status {
+        padding: 6px 9px;
+        border-radius: 999px;
+        font-size: 11px;
+        font-weight: 900;
+        white-space: nowrap;
+      }
+      .status.ok {
+        background: #dcfce7;
+        color: var(--ok);
+      }
+      .status.pending {
+        background: #ffedd5;
+        color: var(--warn);
+      }
+      .status.missing {
+        background: #f1f5f9;
+        color: #64748b;
+      }
+      .metrics {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 10px;
+        margin-top: 18px;
+      }
+      .metric {
+        padding: 13px 11px;
+        background: #f8fafc;
+        border-radius: 12px;
+      }
+      .metric.need {
+        background: #fff7ed;
+      }
+      .metric span {
+        display: block;
+        color: var(--muted);
+        font-size: 11px;
+        font-weight: 800;
+      }
+      .metric strong {
+        display: block;
+        margin-top: 6px;
+        font-size: 23px;
+      }
+      .metric.need strong {
+        color: var(--warn);
+      }
+      .progress-row {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 16px;
+        font-size: 12px;
+        color: var(--muted);
+        font-weight: 700;
+      }
+      .track {
+        height: 9px;
+        background: #e2e8f0;
+        border-radius: 999px;
+        overflow: hidden;
+        margin-top: 7px;
+      }
+      .bar {
+        height: 100%;
+        background: var(--primary);
+        border-radius: 999px;
+      }
+      .summary-report {
+        margin-top: 26px;
+        padding: 22px;
+      }
+      .summary-report h2,
+      .report-actions h2 {
+        font-size: 20px;
+        margin-bottom: 6px;
+      }
+      .summary-report .sub,
+      .report-actions .sub {
+        color: var(--muted);
+        font-size: 13px;
+        margin-bottom: 18px;
+      }
+      .table-wrap {
+        overflow-x: auto;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 900px;
+      }
+      th,
+      td {
+        padding: 12px;
+        border-bottom: 1px solid #e2e8f0;
+        text-align: left;
+        font-size: 12px;
+      }
+      th {
+        background: #f8fafc;
+        color: #475569;
+      }
+      tbody tr:hover {
+        background: #f8fafc;
+      }
+      .num {
+        text-align: right;
+      }
+      .status-cell span {
+        display: inline-flex;
+      }
+      .report-actions {
+        margin-top: 26px;
+        padding: 22px;
+      }
+      .action-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
+      }
+      .history-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 14px;
+        margin: 26px 0 12px;
+      }
+      .history-head h3 {
+        font-size: 18px;
+      }
+      .history-actions {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+      .history-table {
+        min-width: 1250px;
+      }
+      .table-button {
+        min-height: 36px;
+        padding: 6px 10px;
+        border-radius: 7px;
+        font-size: 11px;
+      }
+      .view-pdf {
+        background: #fee2e2;
+        color: #b91c1c;
+      }
+      .view-excel {
+        background: #dcfce7;
+        color: #15803d;
+      }
+      .download-pdf {
+        background: #eff6ff;
+        color: #1d4ed8;
+      }
+      .download-excel {
+        background: #ecfdf5;
+        color: #047857;
+      }
+      .send-mail {
+        background: #fef3c7;
+        color: #92400e;
+      }
+      .history-empty {
+        text-align: center;
+        color: var(--muted);
+        padding: 22px;
+      }
+      .history-summary {
+        min-width: 340px;
+        white-space: normal;
+        line-height: 1.5;
+      }
+      .empty {
+        display: none;
+        padding: 30px;
+        text-align: center;
+        background: #fff;
+        border: 1px dashed #cbd5e1;
+        border-radius: 16px;
+        color: var(--muted);
+      }
+      .empty.show {
+        display: block;
+      }
+      @media (max-width: 1200px) {
+        .summary {
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+        .grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+      }
+      @media (max-width: 760px) {
+        header {
+          align-items: flex-start;
+          flex-direction: column;
+          padding: 16px;
+        }
+        main {
+          width: calc(100% - 24px);
+          margin-top: 16px;
+        }
+        .controls,
+        .grid,
+        .summary,
+        .metrics {
+          grid-template-columns: 1fr;
+        }
+        .action-row,
+        .history-head {
+          align-items: stretch;
+          flex-direction: column;
+        }
+        .action-row button {
+          width: 100%;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div>
+        <h1>Maharashtra HR Performance Report</h1>
+        <p>
+          Maharashtra position-wise manpower target, achieved, have-to-achieve, summary and
+          generated reports
+        </p>
+      </div>
+      <a class="back" href="../super-Admin.html">← Super Admin</a>
+    </header>
+    <main>
+      <section class="panel controls">
+        <div>
+          <label>HR Data Source</label>
+          <div class="fixed-source">Maharashtra Only</div>
+        </div>
+        <div>
+          <label for="reportMonth">Report Month</label>
+          <input id="reportMonth" type="month" />
+        </div>
+        <button id="refreshButton" type="button">
+          Refresh Maharashtra HR Data
+        </button>
+      </section>
+
+      <div id="sourceNote" class="note">
+        Live source: Maharashtra column from Input → Sheet1.
+      </div>
+      <div id="processingMessage" class="msg processing"></div>
+      <div id="successMessage" class="msg success"></div>
+      <div id="errorMessage" class="msg error"></div>
+
+      <section class="summary">
+        <div class="sum-card">
+          <span>Total Positions</span><strong id="totalPositions">9</strong>
+        </div>
+        <div class="sum-card">
+          <span>Total Target</span><strong id="totalTarget">0</strong>
+        </div>
+        <div class="sum-card">
+          <span>Total Achieved</span><strong id="totalAchieved">0</strong>
+        </div>
+        <div class="sum-card">
+          <span>Total Have To Achieve</span
+          ><strong id="totalRemaining">0</strong>
+        </div>
+        <div class="sum-card">
+          <span>Positions Achieved</span
+          ><strong id="positionsAchieved">0</strong>
+        </div>
+        <div class="sum-card">
+          <span>Hiring Pending</span><strong id="positionsPending">0</strong>
+        </div>
+      </section>
+
+      <div class="section-head">
+        <div>
+          <h2>Position-wise HR Status</h2>
+          <p>Each card reads only the Maharashtra column from the live Input sheet.</p>
+        </div>
+        <span id="positionCount" class="badge">9 Positions</span>
+      </div>
+      <section id="cardsGrid" class="grid"></section>
+      <div id="emptyState" class="empty">
+        No Maharashtra HR position data is available.
+      </div>
+
+      <section class="summary-report">
+        <h2>Maharashtra HR Summary Report</h2>
+        <p class="sub">
+          Complete position-wise summary used in the generated PDF and Excel
+          report.
+        </p>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Position</th>
+                <th class="num">Target</th>
+                <th class="num">Achieved</th>
+                <th class="num">Have To Achieve</th>
+                <th class="num">Achievement %</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="summaryBody">
+              <tr>
+                <td colspan="6">Refresh live data to load the HR summary.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="report-actions">
+        <h2>Generate Maharashtra HR Report</h2>
+        <p class="sub">
+          Generate PDF + Excel, save them to Google Drive and add the report to
+          the HR_MH history sheet.
+        </p>
+        <div class="action-row">
+          <button id="generateReportButton" class="secondary" type="button">
+            Generate Report
+          </button>
+        </div>
+
+        <div class="history-head">
+          <div><h3>Generated Reports History (HR_MH Sheet)</h3></div>
+          <div class="history-actions">
+            <span id="reportCount">0 Reports</span>
+            <button id="refreshHistoryButton" class="light-btn" type="button">
+              Refresh History
+            </button>
+            <button id="clearHistoryButton" class="danger-btn" type="button">
+              Clear History
+            </button>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <table class="history-table">
+            <thead>
+              <tr>
+                <th>Date &amp; Time</th>
+                <th>Report Month</th>
+                <th>Summary</th>
+                <th>View PDF</th>
+                <th>View Excel</th>
+                <th>Download PDF</th>
+                <th>Download Excel</th>
+                <th>Send Email (2)</th>
+              </tr>
+            </thead>
+            <tbody id="generatedReportsBody">
+              <tr>
+                <td colspan="8" class="history-empty">
+                  Loading report history...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+    <script>
+      const API_URL = "http://127.0.0.1:3000/api";
+      const REPORT_KEY = "HR_MH";
+      const POSITION_ORDER = [
+        "telecallers",
+        "telesales",
+        "surgeons",
+        "counsellors",
+        "fieldRepresentative",
+        "frontOffice",
+        "pharmacist",
+        "mbbsDoctor",
+        "houseKeeping",
+      ];
+      let liveData = null;
+      let generatedReports = [];
+      const refreshButton = document.getElementById("refreshButton");
+      const cardsGrid = document.getElementById("cardsGrid");
+
+      function validNumber(v) {
+        return (
+          v !== null &&
+          v !== undefined &&
+          v !== "" &&
+          Number.isFinite(Number(v))
+        );
+      }
+      function num(v) {
+        return validNumber(v) ? Number(v) : 0;
+      }
+      function fmt(v) {
+        return validNumber(v)
+          ? new Intl.NumberFormat("en-IN", { maximumFractionDigits: 2 }).format(
+              Number(v),
+            )
+          : "N/A";
+      }
+      function esc(v) {
+        return String(v ?? "")
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#039;");
+      }
+      function showMessage(id, text) {
+        ["processingMessage", "successMessage", "errorMessage"].forEach((x) => {
+          const e = document.getElementById(x);
+          e.classList.remove("show");
+          e.textContent = "";
+        });
+        if (id && text) {
+          const e = document.getElementById(id);
+          e.textContent = text;
+          e.classList.add("show");
+        }
+      }
+      function statusFor(m) {
+        if (!validNumber(m.target) && !validNumber(m.achieved))
+          return { c: "missing", t: "Data Missing" };
+        if (num(m.target) <= 0) return { c: "ok", t: "No Requirement" };
+        if (num(m.achieved) >= num(m.target))
+          return { c: "ok", t: "Target Achieved" };
+        return { c: "pending", t: "Hiring Pending" };
+      }
+      function progressFor(m) {
+        const t = num(m.target),
+          a = num(m.achieved);
+        if (t <= 0) return a > 0 ? 100 : 0;
+        return Math.max(0, Math.min(100, (a / t) * 100));
+      }
+      function statusBadge(m) {
+        const s = statusFor(m);
+        return `<span class="status ${s.c}">${esc(s.t)}</span>`;
+      }
+
+      function calculateTotals(positions) {
+        let target = 0,
+          achieved = 0,
+          remaining = 0,
+          count = 0,
+          done = 0,
+          pending = 0;
+        POSITION_ORDER.forEach((key) => {
+          const m = positions[key];
+          if (!m) return;
+          count++;
+          target += num(m.target);
+          achieved += num(m.achieved);
+          remaining += num(m.haveToAchieve);
+          const s = statusFor(m);
+          if (s.c === "ok") done++;
+          else if (s.c === "pending") pending++;
+        });
+        return {
+          positionCount: count,
+          target,
+          achieved,
+          remaining,
+          positionsAchieved: done,
+          positionsPending: pending,
+        };
+      }
+
+      function renderCards(positions) {
+        cardsGrid.innerHTML = "";
+        let count = 0;
+        POSITION_ORDER.forEach((key) => {
+          const m = positions[key];
+          if (!m) return;
+          count++;
+          const s = statusFor(m),
+            p = progressFor(m);
+          const card = document.createElement("article");
+          card.className = "position-card";
+          card.innerHTML = `<div class="card-head"><h3>${esc(m.label)}</h3><span class="status ${s.c}">${esc(s.t)}</span></div><div class="metrics"><div class="metric"><span>Target</span><strong>${fmt(m.target)}</strong></div><div class="metric"><span>Achieved</span><strong>${fmt(m.achieved)}</strong></div><div class="metric need"><span>Have To Achieve</span><strong>${fmt(m.haveToAchieve)}</strong></div></div><div class="progress-row"><span>Achievement</span><strong>${p.toFixed(0)}%</strong></div><div class="track"><div class="bar" style="width:${p}%"></div></div>`;
+          cardsGrid.appendChild(card);
+        });
+        document.getElementById("positionCount").textContent =
+          `${count} Position${count === 1 ? "" : "s"}`;
+        document
+          .getElementById("emptyState")
+          .classList.toggle("show", count === 0);
+      }
+
+      function renderSummaryCards(positions) {
+        const t = calculateTotals(positions);
+        document.getElementById("totalPositions").textContent = fmt(
+          t.positionCount,
+        );
+        document.getElementById("totalTarget").textContent = fmt(t.target);
+        document.getElementById("totalAchieved").textContent = fmt(t.achieved);
+        document.getElementById("totalRemaining").textContent = fmt(
+          t.remaining,
+        );
+        document.getElementById("positionsAchieved").textContent = fmt(
+          t.positionsAchieved,
+        );
+        document.getElementById("positionsPending").textContent = fmt(
+          t.positionsPending,
+        );
+      }
+
+      function renderSummaryTable(positions) {
+        const body = document.getElementById("summaryBody");
+        body.innerHTML = "";
+        let count = 0;
+        POSITION_ORDER.forEach((key) => {
+          const m = positions[key];
+          if (!m) return;
+          count++;
+          const row = document.createElement("tr");
+          row.innerHTML = `<td><strong>${esc(m.label)}</strong></td><td class="num">${fmt(m.target)}</td><td class="num">${fmt(m.achieved)}</td><td class="num">${fmt(m.haveToAchieve)}</td><td class="num">${progressFor(m).toFixed(0)}%</td><td class="status-cell">${statusBadge(m)}</td>`;
+          body.appendChild(row);
+        });
+        if (!count)
+          body.innerHTML =
+            '<tr><td colspan="6">No Maharashtra HR summary data is available.</td></tr>';
+      }
+
+      function renderAll(positions) {
+        renderCards(positions);
+        renderSummaryCards(positions);
+        renderSummaryTable(positions);
+      }
+
+      async function loadHrData() {
+        const old = refreshButton.textContent;
+        refreshButton.disabled = true;
+        refreshButton.textContent = "Loading...";
+        showMessage(
+          "processingMessage",
+          "Reading Maharashtra HR data from Input → Sheet1...",
+        );
+        try {
+          const response = await fetch(
+            `${API_URL}/reports/hr/mh/live-input`,
+            { method: "GET", credentials: "include", cache: "no-store" },
+          );
+          const result = await response.json();
+          if (response.status === 401) {
+            location.href = "../login.html";
+            return;
+          }
+          if (!response.ok || !result.success)
+            throw new Error(
+              result.message || "Unable to load Maharashtra HR data.",
+            );
+          liveData = result;
+          const positions = result.positions || {};
+          renderAll(positions);
+          document.getElementById("sourceNote").textContent =
+            `Live source: ${result.sourceColumn || "Maharashtra"} column from ${result.inputSpreadsheetName || "Input"} → ${result.inputSheetName || "Sheet1"}.`;
+          showMessage("successMessage", "Maharashtra HR data loaded successfully.");
+        } catch (error) {
+          console.error(error);
+          liveData = null;
+          renderAll({});
+          showMessage(
+            "errorMessage",
+            error.message || "Unable to load Maharashtra HR data.",
+          );
+        } finally {
+          refreshButton.disabled = false;
+          refreshButton.textContent = old;
+        }
+      }
+
+      function getMonthName(value) {
+        if (!value) return "";
+        const p = String(value).split("-");
+        if (p.length !== 2) return value;
+        return new Date(Number(p[0]), Number(p[1]) - 1, 1).toLocaleDateString(
+          "en-IN",
+          { month: "long", year: "numeric" },
+        );
+      }
+      function formatDateTime(v) {
+        if (!v) return "N/A";
+        const d = new Date(v);
+        return Number.isNaN(d.getTime())
+          ? String(v)
+          : d.toLocaleString("en-IN");
+      }
+      function findDriveFile(report, type) {
+        const files =
+          report && Array.isArray(report.driveFiles)
+            ? report.driveFiles
+            : report && Array.isArray(report.files)
+              ? report.files
+              : [];
+        return (
+          files.find((file) =>
+            String(file.type || file.mimeType || "")
+              .toLowerCase()
+              .includes(String(type).toLowerCase()),
+          ) || null
+        );
+      }
+      function driveDownloadUrl(url) {
+        const s = String(url || "");
+        const m = s.match(/\/d\/([^/]+)/);
+        return m && m[1]
+          ? `https://drive.google.com/uc?export=download&id=${encodeURIComponent(m[1])}`
+          : s;
+      }
+      function getReportData() {
+        if (!liveData) return null;
+        const positions = liveData.positions || {};
+        return {
+          sourceKey: "MH",
+          sourceColumn: liveData.sourceColumn || "Maharashtra",
+          positions,
+          totals: calculateTotals(positions),
+        };
+      }
+      function getHistorySummary(report) {
+        if (report && report.summary) return report.summary;
+        const d = report && report.data ? report.data : {};
+        const totals = d.totals || calculateTotals(d.positions || {});
+        return `Positions: ${fmt(totals.positionCount)} | Target: ${fmt(totals.target)} | Achieved: ${fmt(totals.achieved)} | Have To Achieve: ${fmt(totals.remaining)} | Positions Achieved: ${fmt(totals.positionsAchieved)} | Hiring Pending: ${fmt(totals.positionsPending)}`;
+      }
+
+      function renderGeneratedReports() {
+        const body = document.getElementById("generatedReportsBody");
+        document.getElementById("reportCount").textContent =
+          `${generatedReports.length} Report${generatedReports.length === 1 ? "" : "s"}`;
+        body.innerHTML = "";
+        if (!generatedReports.length) {
+          body.innerHTML =
+            '<tr><td colspan="8" class="history-empty">No Maharashtra HR generated reports found.</td></tr>';
+          return;
+        }
+        generatedReports.forEach((report) => {
+          const pdf = findDriveFile(report, "pdf"),
+            excel =
+              findDriveFile(report, "excel") ||
+              findDriveFile(report, "spreadsheet") ||
+              findDriveFile(report, "xlsx");
+          const row = document.createElement("tr");
+          row.innerHTML = `<td>${formatDateTime(report.createdAt)}</td><td><strong>${esc(report.reportMonthName || getMonthName(report.reportMonth))}</strong></td><td class="history-summary">${esc(getHistorySummary(report))}</td><td><button class="table-button view-pdf" data-url="${esc(pdf ? pdf.url || pdf.webViewLink || "" : "")}">View PDF</button></td><td><button class="table-button view-excel" data-url="${esc(excel ? excel.url || excel.webViewLink || "" : "")}">View Excel</button></td><td><button class="table-button download-pdf" data-url="${esc(pdf ? driveDownloadUrl(pdf.url || pdf.webViewLink || "") : "")}">Download PDF</button></td><td><button class="table-button download-excel" data-url="${esc(excel ? driveDownloadUrl(excel.url || excel.webViewLink || "") : "")}">Download Excel</button></td><td><button class="table-button send-mail" data-action="send-email" data-report-id="${esc(report.id || report.reportId || "")}">Send Email (2)</button></td>`;
+          body.appendChild(row);
+        });
+      }
+
+      async function loadGeneratedReports(silent = false) {
+        try {
+          const response = await fetch(
+            `${API_URL}/reports/hr/mh/generated-reports`,
+            { method: "GET", credentials: "include", cache: "no-store" },
+          );
+          const result = await response.json();
+          if (response.status === 401) {
+            location.href = "../login.html";
+            return;
+          }
+          if (!response.ok || !result.success)
+            throw new Error(
+              result.message || "Unable to load Maharashtra HR report history.",
+            );
+          generatedReports = Array.isArray(result.reports)
+            ? result.reports
+            : [];
+          renderGeneratedReports();
+        } catch (error) {
+          console.error(error);
+          if (!silent)
+            showMessage(
+              "errorMessage",
+              error.message || "Unable to load Maharashtra HR report history.",
+            );
+          renderGeneratedReports();
+        }
+      }
+
+      async function generateReport() {
+        const month = document.getElementById("reportMonth").value;
+        const data = getReportData();
+        if (!month) {
+          showMessage("errorMessage", "Please select a report month.");
+          return;
+        }
+        if (!data) {
+          showMessage(
+            "errorMessage",
+            "Please refresh Maharashtra HR live data before generating the report.",
+          );
+          return;
+        }
+        const b = document.getElementById("generateReportButton"),
+          old = b.textContent;
+        b.disabled = true;
+        b.textContent = "Generating...";
+        showMessage(
+          "processingMessage",
+          "Generating Maharashtra HR PDF and Excel report...",
+        );
+        try {
+          const payload = {
+            reportId: Date.now(),
+            reportMonth: month,
+            reportMonthName: getMonthName(month),
+            createdAt: new Date().toISOString(),
+            data,
+          };
+          const response = await fetch(
+            `${API_URL}/reports/hr/mh/save-drive`,
+            {
+              method: "POST",
+              credentials: "include",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(payload),
+            },
+          );
+          const result = await response.json();
+          if (!response.ok || !result.success)
+            throw new Error(
+              result.message || "Unable to generate Maharashtra HR report.",
+            );
+          showMessage(
+            "successMessage",
+            "Maharashtra HR PDF and Excel report generated and saved successfully.",
+          );
+          await loadGeneratedReports(true);
+        } catch (error) {
+          showMessage(
+            "errorMessage",
+            error.message || "Unable to generate Maharashtra HR report.",
+          );
+        } finally {
+          b.disabled = false;
+          b.textContent = old;
+        }
+      }
+
+      async function clearHistory() {
+        if (
+          !confirm(
+            "Clear HR_MH generated report history? Drive files will not be deleted.",
+          )
+        )
+          return;
+        try {
+          const response = await fetch(
+            `${API_URL}/reports/hr/mh/generated-reports`,
+            { method: "DELETE", credentials: "include" },
+          );
+          const result = await response.json();
+          if (!response.ok || !result.success)
+            throw new Error(
+              result.message || "Unable to clear HR report history.",
+            );
+          generatedReports = [];
+          renderGeneratedReports();
+          showMessage(
+            "successMessage",
+            "Maharashtra HR report history cleared successfully.",
+          );
+        } catch (error) {
+          showMessage(
+            "errorMessage",
+            error.message || "Unable to clear HR report history.",
+          );
+        }
+      }
+
+      document
+        .getElementById("generatedReportsBody")
+        .addEventListener("click", async (event) => {
+          const button = event.target.closest("button");
+          if (!button) return;
+          const url = button.dataset.url;
+          if (
+            button.classList.contains("view-pdf") ||
+            button.classList.contains("view-excel") ||
+            button.classList.contains("download-pdf") ||
+            button.classList.contains("download-excel")
+          ) {
+            if (!url) {
+              showMessage("errorMessage", "File URL is not available.");
+              return;
+            }
+            window.open(url, "_blank", "noopener");
+            return;
+          }
+          if (button.dataset.action === "send-email") {
+            const id = button.dataset.reportId;
+            const report = generatedReports.find(
+              (r) => String(r.id || r.reportId) === String(id),
+            );
+            if (!report) {
+              showMessage("errorMessage", "Selected HR report was not found.");
+              return;
+            }
+            const old = button.textContent;
+            button.disabled = true;
+            button.textContent = "Sending...";
+            try {
+              const response = await fetch(
+                `${API_URL}/reports/hr/mh/send-email`,
+                {
+                  method: "POST",
+                  credentials: "include",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    reportId: report.id || report.reportId,
+                    reportMonth: report.reportMonth,
+                    reportMonthName: report.reportMonthName,
+                    createdAt: report.createdAt,
+                    data: report.data || getReportData(),
+                  }),
+                },
+              );
+              const result = await response.json();
+              if (!response.ok || !result.success)
+                throw new Error(
+                  result.message || "Unable to send Maharashtra HR report email.",
+                );
+              showMessage(
+                "successMessage",
+                result.message ||
+                  (
+                    Number(result.recipientCount) >= 2
+                      ? "Maharashtra HR report sent successfully to both configured recipients."
+                      : "Maharashtra HR report sent successfully."
+                  ),
+              );
+            } catch (error) {
+              showMessage(
+                "errorMessage",
+                error.message || "Unable to send Maharashtra HR report email.",
+              );
+            } finally {
+              button.disabled = false;
+              button.textContent = old;
+            }
+          }
+        });
+
+      refreshButton.addEventListener("click", loadHrData);
+      document
+        .getElementById("generateReportButton")
+        .addEventListener("click", generateReport);
+      document
+        .getElementById("refreshHistoryButton")
+        .addEventListener("click", () => loadGeneratedReports(false));
+      document
+        .getElementById("clearHistoryButton")
+        .addEventListener("click", clearHistory);
+      (function init() {
+        const d = new Date();
+        document.getElementById("reportMonth").value =
+          `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+        renderGeneratedReports();
+        loadHrData();
+        loadGeneratedReports(true);
+      })();
+    </script>
+  </body>
+</html>

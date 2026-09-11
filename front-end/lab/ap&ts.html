@@ -1,0 +1,1284 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AP & TS Lab Performance Report</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: Arial, Helvetica, sans-serif;
+      }
+      body {
+        background: #f1f5f9;
+        color: #0f172a;
+      }
+      .sidebar {
+        position: fixed;
+        left: 0;
+        top: 0;
+        width: 260px;
+        height: 100vh;
+        padding: 30px 20px;
+        background: #0f172a;
+        color: white;
+        display: flex;
+        flex-direction: column;
+        overflow-y: auto;
+        z-index: 1000;
+      }
+      .sidebar-title {
+        margin-bottom: 35px;
+      }
+      .sidebar-title h2 {
+        margin-bottom: 5px;
+        font-size: 22px;
+      }
+      .sidebar-title span {
+        color: #94a3b8;
+        font-size: 12px;
+      }
+      .sidebar-menu {
+        display: flex;
+        flex-direction: column;
+        gap: 7px;
+      }
+      .sidebar-link {
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 13px 14px;
+        border: none;
+        border-radius: 7px;
+        background: transparent;
+        color: #cbd5e1;
+        text-decoration: none;
+        cursor: pointer;
+        font-size: 14px;
+        text-align: left;
+      }
+      .sidebar-link:hover {
+        background: #1e293b;
+        color: white;
+      }
+      .sidebar-link.active {
+        background: #2563eb;
+        color: white;
+      }
+      .dropdown {
+        width: 100%;
+      }
+      .dropdown-arrow {
+        font-size: 10px;
+        transition: transform 0.3s;
+      }
+      .dropdown.open .dropdown-arrow {
+        transform: rotate(180deg);
+      }
+      .submenu {
+        display: none;
+        flex-direction: column;
+        margin-top: 5px;
+        margin-left: 12px;
+        padding-left: 12px;
+        border-left: 1px solid #334155;
+      }
+      .dropdown.open .submenu {
+        display: flex;
+      }
+      .submenu-link {
+        display: block;
+        padding: 10px 12px;
+        margin-bottom: 3px;
+        border-radius: 6px;
+        color: #94a3b8;
+        text-decoration: none;
+        font-size: 13px;
+      }
+      .submenu-link:hover {
+        padding-left: 16px;
+        background: #1e293b;
+        color: white;
+      }
+      .submenu-link.active {
+        background: #334155;
+        color: white;
+        font-weight: 600;
+      }
+      #logoutButton {
+        width: 100%;
+        min-height: 43px;
+        margin-top: auto;
+        border: none;
+        border-radius: 7px;
+        background: #dc2626;
+        color: white;
+        cursor: pointer;
+        font-weight: 600;
+      }
+      main {
+        margin-left: 260px;
+        min-height: 100vh;
+        padding: 35px;
+      }
+      .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+      }
+      .page-header h1 {
+        margin-bottom: 7px;
+        font-size: 28px;
+      }
+      .page-header p {
+        color: #64748b;
+        font-size: 14px;
+      }
+      .admin-profile {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .admin-avatar {
+        width: 44px;
+        height: 44px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        border-radius: 50%;
+        background: #2563eb;
+        color: white;
+        font-weight: bold;
+      }
+      .admin-details {
+        display: flex;
+        flex-direction: column;
+      }
+      #adminName {
+        font-size: 14px;
+      }
+      #adminEmail {
+        margin-top: 4px;
+        color: #64748b;
+        font-size: 12px;
+      }
+      .section-card {
+        margin-bottom: 25px;
+        padding: 28px;
+        border-radius: 12px;
+        background: white;
+        box-shadow: 0 4px 15px rgba(15, 23, 42, 0.05);
+      }
+      .report-title h2 {
+        margin-bottom: 8px;
+        font-size: 22px;
+      }
+      .report-title p {
+        color: #64748b;
+        font-size: 14px;
+        line-height: 1.6;
+      }
+      .source-note {
+        margin-top: 14px;
+        padding: 12px 14px;
+        border-radius: 8px;
+        background: #eff6ff;
+        color: #1e40af;
+        font-size: 12px;
+      }
+      .control-row {
+        display: grid;
+        grid-template-columns: minmax(220px, 300px) 1fr;
+        gap: 20px;
+        align-items: end;
+        margin-top: 22px;
+      }
+      .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        color: #475569;
+        font-size: 13px;
+        font-weight: 600;
+      }
+      .form-group input {
+        width: 100%;
+        height: 43px;
+        padding: 0 12px;
+        border: 1px solid #cbd5e1;
+        border-radius: 7px;
+      }
+      .live-button,
+      .generate-button {
+        min-height: 43px;
+        padding: 0 20px;
+        border: none;
+        border-radius: 7px;
+        color: white;
+        cursor: pointer;
+        font-size: 13px;
+        font-weight: 700;
+      }
+      .live-button {
+        background: #2563eb;
+      }
+      .generate-button {
+        min-height: 48px;
+        padding: 0 28px;
+        background: #0f172a;
+        font-size: 15px;
+      }
+      .live-source {
+        margin-top: 16px;
+        padding: 11px 13px;
+        border-radius: 7px;
+        background: #f8fafc;
+        color: #475569;
+        font-size: 12px;
+      }
+      .message {
+        display: none;
+        margin-top: 15px;
+        padding: 12px 14px;
+        border-radius: 7px;
+        font-size: 13px;
+      }
+      .message.show {
+        display: block;
+      }
+      .message.processing {
+        background: #fef3c7;
+        color: #92400e;
+      }
+      .message.success {
+        background: #dcfce7;
+        color: #15803d;
+      }
+      .message.error {
+        background: #fee2e2;
+        color: #b91c1c;
+      }
+      .metrics-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+        margin-bottom: 25px;
+      }
+      .metric-card {
+        padding: 22px;
+        border-radius: 12px;
+        background: white;
+        box-shadow: 0 4px 15px rgba(15, 23, 42, 0.05);
+      }
+      .metric-title {
+        margin-bottom: 18px;
+        font-size: 16px;
+        font-weight: 700;
+      }
+      .metric-values {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+      }
+      .metric-box {
+        padding: 12px;
+        border-radius: 8px;
+        background: #f8fafc;
+      }
+      .metric-box.full {
+        grid-column: 1/-1;
+      }
+      .metric-box.need {
+        background: #fff7ed;
+      }
+      .metric-box span {
+        display: block;
+        margin-bottom: 6px;
+        color: #64748b;
+        font-size: 11px;
+        font-weight: 600;
+      }
+      .metric-box strong {
+        display: block;
+        font-size: 19px;
+        line-height: 1.25;
+        word-break: break-word;
+      }
+      .metric-box.need strong {
+        color: #c2410c;
+      }
+      .metric-result {
+        margin-top: 14px;
+      }
+      .status {
+        display: inline-flex;
+        padding: 7px 10px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 700;
+      }
+      .status-success {
+        background: #dcfce7;
+        color: #15803d;
+      }
+      .status-failed {
+        background: #fee2e2;
+        color: #b91c1c;
+      }
+      .status-missing {
+        background: #fff7ed;
+        color: #c2410c;
+      }
+      .table-title {
+        margin-bottom: 18px;
+        font-size: 19px;
+      }
+      .table-wrapper,
+      .report-table-wrapper {
+        width: 100%;
+        overflow-x: auto;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      th,
+      td {
+        padding: 13px 12px;
+        border-bottom: 1px solid #e2e8f0;
+        font-size: 12px;
+        text-align: left;
+        white-space: nowrap;
+      }
+      th {
+        background: #f8fafc;
+        color: #475569;
+      }
+      .performance-table {
+        min-width: 780px;
+      }
+      .generated-reports {
+        margin-top: 28px;
+      }
+      .generated-reports-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 15px;
+        margin-bottom: 15px;
+      }
+      .generated-actions {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 10px;
+      }
+      .refresh-history-button,
+      .clear-history-button {
+        min-height: 34px;
+        padding: 0 12px;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 11px;
+        font-weight: 700;
+      }
+      .refresh-history-button {
+        background: #dbeafe;
+        color: #1d4ed8;
+      }
+      .clear-history-button {
+        background: #fee2e2;
+        color: #b91c1c;
+      }
+      .report-table {
+        min-width: 1320px;
+      }
+      .report-table th,
+      .report-table td {
+        white-space: normal;
+        vertical-align: middle;
+      }
+      .history-summary {
+        min-width: 380px;
+        line-height: 1.45;
+      }
+      .table-button {
+        min-width: 95px;
+        min-height: 40px;
+        padding: 7px 11px;
+        border: none;
+        border-radius: 7px;
+        cursor: pointer;
+        font-size: 11px;
+        font-weight: 700;
+      }
+      .view-pdf {
+        background: #fee2e2;
+        color: #b91c1c;
+      }
+      .view-excel {
+        background: #dcfce7;
+        color: #15803d;
+      }
+      .download-pdf {
+        background: #eff6ff;
+        color: #1d4ed8;
+      }
+      .download-excel {
+        background: #ecfdf5;
+        color: #047857;
+      }
+      .send-mail {
+        background: #fef3c7;
+        color: #92400e;
+      }
+      .history-empty {
+        padding: 30px !important;
+        text-align: center !important;
+        color: #94a3b8;
+      }
+      @media (max-width: 1100px) {
+        .metrics-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+      }
+      @media (max-width: 800px) {
+        .sidebar {
+          width: 210px;
+        }
+        main {
+          margin-left: 210px;
+          padding: 20px;
+        }
+        .metrics-grid,
+        .control-row {
+          grid-template-columns: 1fr;
+        }
+        .page-header,
+        .generated-reports-header {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 20px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <aside class="sidebar">
+      <div class="sidebar-title">
+        <h2>Admin Panel</h2>
+        <span>Super Admin</span>
+      </div>
+      <div class="sidebar-menu">
+        <a href="../pan-india.html" class="sidebar-link"
+          ><span>Pan India Report</span></a
+        >
+        <div class="dropdown" id="ipDropdown">
+          <button type="button" class="sidebar-link" id="ipDropdownButton">
+            <span>IP Reports</span><span class="dropdown-arrow">▼</span>
+          </button>
+          <div class="submenu">
+            <a href="../ip/ap&amp;ts.html" class="submenu-link"
+              >Andhra Pradesh</a
+            ><a href="../ip/ap&amp;ts.html" class="submenu-link">Telangana</a
+            ><a href="../ip/karnataka.html" class="submenu-link">Karnataka</a
+            ><a href="../ip/tamil-nadu.html" class="submenu-link">Tamil Nadu</a
+            ><a href="../ip/west-bengal.html" class="submenu-link"
+              >West Bengal</a
+            ><a href="../ip/maharashtra.html" class="submenu-link"
+              >Maharashtra</a
+            >
+          </div>
+        </div>
+        <div class="dropdown" id="opDropdown">
+          <button type="button" class="sidebar-link" id="opDropdownButton">
+            <span>OP Reports</span><span class="dropdown-arrow">▼</span>
+          </button>
+          <div class="submenu">
+            <a href="../op/ap&amp;ts.html" class="submenu-link"
+              >Andhra Pradesh</a
+            ><a href="../op/ap&amp;ts.html" class="submenu-link">Telangana</a
+            ><a href="../op/karnataka.html" class="submenu-link">Karnataka</a
+            ><a href="../op/tamil-nadu.html" class="submenu-link">Tamil Nadu</a
+            ><a href="../op/west-bengal.html" class="submenu-link"
+              >West Bengal</a
+            ><a href="../op/maharashtra.html" class="submenu-link"
+              >Maharashtra</a
+            ><a href="../op/delhi.html" class="submenu-link">Delhi</a>
+          </div>
+        </div>
+        <div class="dropdown" id="googleFbDropdown">
+          <button
+            type="button"
+            class="sidebar-link"
+            id="googleFbDropdownButton"
+          >
+            <span>Google &amp; FB Reports</span
+            ><span class="dropdown-arrow">▼</span>
+          </button>
+          <div class="submenu">
+            <a href="../google&amp;fb/ap&amp;ts.html" class="submenu-link"
+              >AP &amp; TS</a
+            ><a href="../google&amp;fb/karnataka.html" class="submenu-link"
+              >Karnataka</a
+            ><a href="../google&amp;fb/tamil-nadu.html" class="submenu-link"
+              >Tamil Nadu</a
+            ><a href="../google&amp;fb/west-bengal.html" class="submenu-link"
+              >West Bengal</a
+            ><a href="../google&amp;fb/maharashtra.html" class="submenu-link"
+              >Maharashtra</a
+            ><a href="../google&amp;fb/delhi.html" class="submenu-link"
+              >Delhi</a
+            >
+          </div>
+        </div>
+        <div class="dropdown open" id="labDropdown">
+          <button
+            type="button"
+            class="sidebar-link active"
+            id="labDropdownButton"
+          >
+            <span>Lab Reports</span><span class="dropdown-arrow">▼</span>
+          </button>
+          <div class="submenu">
+            <a href="./ap&ts.html" class="submenu-link active">AP & TS</a
+            ><a href="./karnataka.html" class="submenu-link">Karnataka</a
+            ><a href="./tamil-nadu.html" class="submenu-link">Tamil Nadu</a
+            ><a href="./west-bengal.html" class="submenu-link">West Bengal</a
+            ><a href="./maharashtra.html" class="submenu-link">Maharashtra</a>
+          </div>
+        </div>
+        <a href="../pharmacy.html" class="sidebar-link"
+          ><span>Pharmacy</span></a
+        >
+      </div>
+      <button id="logoutButton">Logout</button>
+    </aside>
+    <main>
+      <header class="page-header">
+        <div>
+          <h1>AP & TS Lab Performance Report</h1>
+          <p>Lab Count, Lab Revenue and Per Lab Revenue Performance</p>
+        </div>
+        <div class="admin-profile">
+          <div class="admin-avatar">SA</div>
+          <div class="admin-details">
+            <strong id="adminName">Super Admin</strong
+            ><span id="adminEmail">Loading...</span>
+          </div>
+        </div>
+      </header>
+      <section class="section-card report-title">
+        <h2>Lab Dashboard</h2>
+        <p>
+          This dashboard reads <strong>AP & TS lab data only</strong>. It shows
+          Lab Count Target, Achieved and Unachieved; Lab Revenue Target,
+          Achieved and Unachieved; Per Lab Revenue Generated; and Discount Given
+          Per Lab Revenue.
+        </p>
+        <div class="source-note">
+          <strong>Live source:</strong> APTS column from Input → Sheet1.
+        </div>
+        <div class="control-row">
+          <div class="form-group">
+            <label for="reportMonth">Report Month</label
+            ><input type="month" id="reportMonth" />
+          </div>
+          <div>
+            <button
+              type="button"
+              class="live-button"
+              id="refreshLiveDataButton"
+            >
+              Refresh Live Data
+            </button>
+          </div>
+        </div>
+        <div class="live-source" id="liveSourceInfo">
+          Waiting for AP & TS Lab live data...
+        </div>
+        <div class="message processing" id="processingMessage"></div>
+        <div class="message success" id="successMessage"></div>
+        <div class="message error" id="errorMessage"></div>
+      </section>
+      <section class="metrics-grid">
+        <div class="metric-card">
+          <div class="metric-title">Lab Count</div>
+          <div class="metric-values">
+            <div class="metric-box">
+              <span>Lab Count Target</span
+              ><strong id="labCountTargetDisplay">N/A</strong>
+            </div>
+            <div class="metric-box">
+              <span>Lab Count Achieved</span
+              ><strong id="labCountAchievedDisplay">N/A</strong>
+            </div>
+            <div class="metric-box full need">
+              <span>Lab Count Unachieved</span
+              ><strong id="labCountUnachievedDisplay">N/A</strong>
+            </div>
+          </div>
+          <div class="metric-result" id="labCountResult"></div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-title">Lab Revenue</div>
+          <div class="metric-values">
+            <div class="metric-box">
+              <span>Lab Revenue Target</span
+              ><strong id="labRevenueTargetDisplay">N/A</strong>
+            </div>
+            <div class="metric-box">
+              <span>Lab Revenue Achieved</span
+              ><strong id="labRevenueAchievedDisplay">N/A</strong>
+            </div>
+            <div class="metric-box full need">
+              <span>Lab Revenue Need to Achieve</span
+              ><strong id="labRevenueNeedToAchieveDisplay">N/A</strong>
+            </div>
+          </div>
+          <div class="metric-result" id="labRevenueResult"></div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-title">Per Lab Revenue</div>
+          <div class="metric-values">
+            <div class="metric-box full">
+              <span>Per Lab Revenue Generated</span
+              ><strong id="perLabRevenueGeneratedDisplay">N/A</strong>
+            </div>
+            <div class="metric-box full need">
+              <span>Discount Given Per Lab Revenue</span
+              ><strong id="discountPerLabRevenueDisplay">N/A</strong>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section class="section-card">
+        <h2 class="table-title">AP & TS Lab Performance Summary</h2>
+        <div class="table-wrapper">
+          <table class="performance-table">
+            <thead>
+              <tr>
+                <th>Particular</th>
+                <th>Target</th>
+                <th>Achieved / Value</th>
+                <th>Result</th>
+              </tr>
+            </thead>
+            <tbody id="performanceSummaryBody">
+              <tr>
+                <td colspan="4">
+                  Refresh live data to load AP & TS Lab values.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+      <section class="section-card">
+        <button type="button" class="generate-button" id="generateReportButton">
+          Generate Report
+        </button>
+        <div class="generated-reports">
+          <div class="generated-reports-header">
+            <h2 class="table-title">
+              Generated Reports History (LAB_APTS Sheet)
+            </h2>
+            <div class="generated-actions">
+              <span id="reportCount">0 Reports</span
+              ><button
+                type="button"
+                class="refresh-history-button"
+                id="refreshHistoryButton"
+              >
+                Refresh History</button
+              ><button
+                type="button"
+                class="clear-history-button"
+                id="clearHistoryButton"
+              >
+                Clear History
+              </button>
+            </div>
+          </div>
+          <div class="report-table-wrapper">
+            <table class="report-table">
+              <thead>
+                <tr>
+                  <th>Date &amp; Time</th>
+                  <th>Report Month</th>
+                  <th>Summary</th>
+                  <th>View PDF</th>
+                  <th>View Excel</th>
+                  <th>Download PDF</th>
+                  <th>Download Excel</th>
+                  <th>Send Email</th>
+                </tr>
+              </thead>
+              <tbody id="generatedReportsBody">
+                <tr>
+                  <td colspan="8" class="history-empty">
+                    Loading Lab report history...
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </main>
+    <script>
+      const API_URL = "http://127.0.0.1:3000/api",
+        LAB_ROUTE = "apts",
+        LAB_REPORT_KEY = "LAB_APTS",
+        LAB_SOURCE_KEY = "APTS",
+        LAB_SOURCE_LABEL = "APTS",
+        LAB_STATE_NAME = "AP & TS",
+        STORAGE_KEY = "lab_apts_performance_reports_v1";
+      let liveData = null,
+        generatedReports = [];
+      const ipDropdown = document.getElementById("ipDropdown"),
+        opDropdown = document.getElementById("opDropdown"),
+        googleFbDropdown = document.getElementById("googleFbDropdown"),
+        labDropdown = document.getElementById("labDropdown"),
+        sidebarDropdowns = [
+          ipDropdown,
+          opDropdown,
+          googleFbDropdown,
+          labDropdown,
+        ].filter(Boolean);
+      function toggleDropdown(d) {
+        if (!d) return;
+        const open = !d.classList.contains("open");
+        sidebarDropdowns.forEach((x) => x.classList.remove("open"));
+        if (open) d.classList.add("open");
+      }
+      [
+        ["ipDropdownButton", ipDropdown],
+        ["opDropdownButton", opDropdown],
+        ["googleFbDropdownButton", googleFbDropdown],
+        ["labDropdownButton", labDropdown],
+      ].forEach(([id, d]) => {
+        const b = document.getElementById(id);
+        if (b) b.addEventListener("click", () => toggleDropdown(d));
+      });
+      if (labDropdown) labDropdown.classList.add("open");
+      function validNumber(v) {
+        return (
+          v !== null &&
+          v !== undefined &&
+          v !== "" &&
+          Number.isFinite(Number(v))
+        );
+      }
+      function formatNumber(v) {
+        return validNumber(v)
+          ? new Intl.NumberFormat("en-IN", { maximumFractionDigits: 2 }).format(
+              Number(v),
+            )
+          : "N/A";
+      }
+      function formatCurrency(v) {
+        return validNumber(v)
+          ? new Intl.NumberFormat("en-IN", {
+              style: "currency",
+              currency: "INR",
+              maximumFractionDigits: 0,
+            }).format(Number(v))
+          : "N/A";
+      }
+
+      function resolveLabRevenue(value) {
+        const lr = value && typeof value === "object" ? value : {};
+
+        const achieved = validNumber(lr.achieved) ? Number(lr.achieved) : null;
+
+        const explicitNeed = validNumber(lr.needToAchieve)
+          ? Number(lr.needToAchieve)
+          : validNumber(lr.unachieved)
+            ? Number(lr.unachieved)
+            : null;
+
+        let target = validNumber(lr.target) ? Number(lr.target) : null;
+
+        /*
+         * IMPORTANT FIX:
+         * If Lab Revenue Target is not returned separately,
+         * Target = Achieved + Need to Achieve.
+         *
+         * Example from the current APTS screen:
+         * ₹6,15,130 + ₹1,94,870 = ₹8,10,000.
+         */
+        if (target === null && achieved !== null && explicitNeed !== null) {
+          target = achieved + explicitNeed;
+        }
+
+        let needToAchieve = explicitNeed;
+
+        if (needToAchieve === null && target !== null && achieved !== null) {
+          needToAchieve = Math.max(0, target - achieved);
+        }
+
+        return {
+          target,
+          achieved,
+          needToAchieve,
+          /*
+           * Keep old property as an alias for compatibility.
+           */
+          unachieved: needToAchieve,
+        };
+      }
+
+      function statusHTML(t, a) {
+        if (!validNumber(t) || !validNumber(a))
+          return '<span class="status status-missing">Data Missing</span>';
+        return Number(a) >= Number(t)
+          ? '<span class="status status-success">↑ Target Achieved</span>'
+          : '<span class="status status-failed">↓ Target Not Achieved</span>';
+      }
+      function calculatedStatusHTML(v) {
+        return validNumber(v)
+          ? '<span class="status status-success">Calculated</span>'
+          : '<span class="status status-missing">Data Missing</span>';
+      }
+      function setText(id, v) {
+        const e = document.getElementById(id);
+        if (e) e.textContent = v;
+      }
+      function clearMessages() {
+        ["processingMessage", "successMessage", "errorMessage"].forEach(
+          (id) => {
+            const e = document.getElementById(id);
+            e.classList.remove("show");
+            e.textContent = "";
+          },
+        );
+      }
+      function showMessage(id, text) {
+        clearMessages();
+        const e = document.getElementById(id);
+        e.textContent = text;
+        e.classList.add("show");
+      }
+      function renderCards(d) {
+        const lc = d.labCount || {},
+          lr = resolveLabRevenue(d.labRevenue),
+          pl = d.perLabRevenue || {};
+        setText("labCountTargetDisplay", formatNumber(lc.target));
+        setText("labCountAchievedDisplay", formatNumber(lc.achieved));
+        setText("labCountUnachievedDisplay", formatNumber(lc.unachieved));
+        setText("labRevenueTargetDisplay", formatCurrency(lr.target));
+        setText("labRevenueAchievedDisplay", formatCurrency(lr.achieved));
+        setText(
+          "labRevenueNeedToAchieveDisplay",
+          formatCurrency(lr.needToAchieve),
+        );
+        setText("perLabRevenueGeneratedDisplay", formatCurrency(pl.generated));
+        setText("discountPerLabRevenueDisplay", formatCurrency(pl.discount));
+        document.getElementById("labCountResult").innerHTML = statusHTML(
+          lc.target,
+          lc.achieved,
+        );
+        document.getElementById("labRevenueResult").innerHTML = statusHTML(
+          lr.target,
+          lr.achieved,
+        );
+      }
+      function renderPerformanceSummary(d) {
+        const lc = d.labCount || {},
+          lr = resolveLabRevenue(d.labRevenue),
+          pl = d.perLabRevenue || {};
+        document.getElementById("performanceSummaryBody").innerHTML =
+          `<tr><td>Lab Count</td><td>${formatNumber(lc.target)}</td><td>${formatNumber(lc.achieved)}</td><td>${statusHTML(lc.target, lc.achieved)}</td></tr><tr><td>Lab Count Unachieved</td><td>N/A</td><td>${formatNumber(lc.unachieved)}</td><td>${calculatedStatusHTML(lc.unachieved)}</td></tr><tr><td>Lab Revenue</td><td>${formatCurrency(lr.target)}</td><td>${formatCurrency(lr.achieved)}</td><td>${statusHTML(lr.target, lr.achieved)}</td></tr><tr><td>Lab Revenue Need to Achieve</td><td>N/A</td><td>${formatCurrency(lr.needToAchieve)}</td><td>${calculatedStatusHTML(lr.unachieved)}</td></tr><tr><td>Per Lab Revenue Generated</td><td>N/A</td><td>${formatCurrency(pl.generated)}</td><td>${calculatedStatusHTML(pl.generated)}</td></tr><tr><td>Discount Given Per Lab Revenue</td><td>N/A</td><td>${formatCurrency(pl.discount)}</td><td>${calculatedStatusHTML(pl.discount)}</td></tr>`;
+      }
+      async function refreshLiveData() {
+        clearMessages();
+        const b = document.getElementById("refreshLiveDataButton"),
+          orig = b.textContent;
+        b.disabled = true;
+        b.textContent = "Loading...";
+        showMessage(
+          "processingMessage",
+          `Reading ${LAB_STATE_NAME} Lab data...`,
+        );
+        try {
+          const r = await fetch(
+              `${API_URL}/reports/lab/${LAB_ROUTE}/live-input`,
+              { method: "GET", credentials: "include", cache: "no-store" },
+            ),
+            j = await r.json();
+          if (r.status === 401) {
+            location.href = "../login.html";
+            return;
+          }
+          if (!r.ok || !j.success)
+            throw new Error(
+              j.message ||
+                `Unable to load Lab data. Server returned ${r.status}.`,
+            );
+          liveData = j;
+          renderCards(j.totals || {});
+          renderPerformanceSummary(j.totals || {});
+          setText(
+            "liveSourceInfo",
+            "Loaded live source: " +
+              (j.sourceColumn || LAB_SOURCE_LABEL) +
+              " only.",
+          );
+          showMessage(
+            "successMessage",
+            `${LAB_STATE_NAME} Lab data loaded successfully.`,
+          );
+        } catch (e) {
+          showMessage(
+            "errorMessage",
+            e.message || `Unable to load ${LAB_STATE_NAME} Lab live data.`,
+          );
+        } finally {
+          b.disabled = false;
+          b.textContent = orig;
+        }
+      }
+      function getReportData() {
+        if (!liveData || !liveData.totals) return null;
+        return {
+          sourceKey: LAB_SOURCE_KEY,
+          sourceColumn: liveData.sourceColumn || LAB_SOURCE_LABEL,
+          labCount: liveData.totals.labCount || {
+            target: null,
+            achieved: null,
+            unachieved: null,
+          },
+          labRevenue: resolveLabRevenue(
+            liveData.totals.labRevenue || {
+              target: null,
+              achieved: null,
+              needToAchieve: null,
+              unachieved: null,
+            },
+          ),
+          perLabRevenue: liveData.totals.perLabRevenue || {
+            target: null,
+            generated: null,
+            discount: null,
+          },
+        };
+      }
+      function getMonthName(v) {
+        if (!v) return "";
+        const p = String(v).split("-");
+        if (p.length !== 2) return v;
+        return new Date(Number(p[0]), Number(p[1]) - 1, 1).toLocaleDateString(
+          "en-IN",
+          { month: "long", year: "numeric" },
+        );
+      }
+      function formatDateTime(v) {
+        if (!v) return "N/A";
+        const d = new Date(v);
+        return Number.isNaN(d.getTime())
+          ? String(v)
+          : d.toLocaleString("en-IN");
+      }
+      function findDriveFile(r, t) {
+        const f = r && Array.isArray(r.driveFiles) ? r.driveFiles : [];
+        return (
+          f.find(
+            (x) =>
+              String(x.type || "").toLowerCase() === String(t).toLowerCase(),
+          ) || null
+        );
+      }
+      function driveDownloadUrl(u) {
+        const s = String(u || ""),
+          m = s.match(/\/d\/([^/]+)/);
+        return m && m[1]
+          ? "https://drive.google.com/uc?export=download&id=" +
+              encodeURIComponent(m[1])
+          : s;
+      }
+      function getHistorySummary(r) {
+        if (r && r.summary) return r.summary;
+        const d = r && r.data ? r.data : {},
+          lc = d.labCount || {},
+          lr = resolveLabRevenue(d.labRevenue),
+          pl = d.perLabRevenue || {};
+        return [
+          `Lab Count: ${formatNumber(lc.target)} / ${formatNumber(lc.achieved)}`,
+          `Lab Count Unachieved: ${formatNumber(lc.unachieved)}`,
+          `Lab Revenue: ${formatCurrency(lr.target)} / ${formatCurrency(lr.achieved)}`,
+          `Lab Revenue Need to Achieve: ${formatCurrency(lr.needToAchieve)}`,
+          `Per Lab Revenue Generated: ${formatCurrency(pl.generated)}`,
+          `Discount Per Lab Revenue: ${formatCurrency(pl.discount)}`,
+        ].join(" | ");
+      }
+      function persistGeneratedReports() {
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(generatedReports));
+        } catch (e) {}
+      }
+      function loadCachedGeneratedReports() {
+        try {
+          const v = localStorage.getItem(STORAGE_KEY);
+          if (v) {
+            const p = JSON.parse(v);
+            if (Array.isArray(p)) generatedReports = p;
+          }
+        } catch (e) {
+          generatedReports = [];
+        }
+      }
+      function renderGeneratedReports() {
+        const body = document.getElementById("generatedReportsBody"),
+          count = document.getElementById("reportCount");
+        count.textContent = `${generatedReports.length} Report${generatedReports.length === 1 ? "" : "s"}`;
+        body.innerHTML = "";
+        if (!generatedReports.length) {
+          body.innerHTML =
+            '<tr><td colspan="8" class="history-empty">No Lab generated reports found.</td></tr>';
+          return;
+        }
+        generatedReports.forEach((r) => {
+          const row = document.createElement("tr"),
+            pdf = findDriveFile(r, "pdf"),
+            excel = findDriveFile(r, "excel") || findDriveFile(r, "xlsx");
+          row.innerHTML = `<td>${formatDateTime(r.createdAt)}</td><td><strong>${r.reportMonthName || getMonthName(r.reportMonth)}</strong></td><td class="history-summary">${getHistorySummary(r)}</td><td><button type="button" class="table-button view-pdf" data-url="${pdf ? pdf.url || "" : ""}">View PDF</button></td><td><button type="button" class="table-button view-excel" data-url="${excel ? excel.url || "" : ""}">View Excel</button></td><td><button type="button" class="table-button download-pdf" data-url="${pdf ? driveDownloadUrl(pdf.url || "") : ""}">Download PDF</button></td><td><button type="button" class="table-button download-excel" data-url="${excel ? driveDownloadUrl(excel.url || "") : ""}">Download Excel</button></td><td><button type="button" class="table-button send-mail" data-action="send-email" data-report-id="${r.id || r.reportId || ""}">Send Email</button></td>`;
+          body.appendChild(row);
+        });
+      }
+      async function loadGeneratedReports(silent = false) {
+        try {
+          const r = await fetch(
+              `${API_URL}/reports/lab/${LAB_ROUTE}/generated-reports`,
+              { method: "GET", credentials: "include", cache: "no-store" },
+            ),
+            j = await r.json();
+          if (r.status === 401) {
+            location.href = "../login.html";
+            return;
+          }
+          if (!r.ok || !j.success)
+            throw new Error(j.message || "Unable to load Lab report history.");
+          generatedReports = Array.isArray(j.reports) ? j.reports : [];
+          persistGeneratedReports();
+          renderGeneratedReports();
+        } catch (e) {
+          if (!silent)
+            showMessage(
+              "errorMessage",
+              e.message || "Unable to load Lab report history.",
+            );
+          renderGeneratedReports();
+        }
+      }
+      async function generateReport() {
+        clearMessages();
+        const month = document.getElementById("reportMonth").value,
+          data = getReportData();
+        if (!month) {
+          showMessage("errorMessage", "Please select a report month.");
+          return;
+        }
+        if (!data) {
+          showMessage(
+            "errorMessage",
+            "Please refresh live Lab data before generating the report.",
+          );
+          return;
+        }
+        const b = document.getElementById("generateReportButton"),
+          orig = b.textContent;
+        b.disabled = true;
+        b.textContent = "Generating...";
+        showMessage(
+          "processingMessage",
+          `Generating ${LAB_STATE_NAME} Lab PDF and Excel...`,
+        );
+        try {
+          const payload = {
+              reportId: Date.now(),
+              reportMonth: month,
+              reportMonthName: getMonthName(month),
+              createdAt: new Date().toISOString(),
+              data,
+            },
+            r = await fetch(`${API_URL}/reports/lab/${LAB_ROUTE}/save-drive`, {
+              method: "POST",
+              credentials: "include",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(payload),
+            }),
+            j = await r.json();
+          if (!r.ok || !j.success)
+            throw new Error(j.message || "Unable to generate Lab report.");
+          showMessage(
+            "successMessage",
+            `${LAB_STATE_NAME} Lab PDF and Excel generated successfully.`,
+          );
+          await loadGeneratedReports(true);
+        } catch (e) {
+          showMessage(
+            "errorMessage",
+            e.message || "Unable to generate Lab report.",
+          );
+        } finally {
+          b.disabled = false;
+          b.textContent = orig;
+        }
+      }
+      async function clearHistory() {
+        if (
+          !confirm(
+            `Clear the ${LAB_REPORT_KEY} generated report history? Drive files will not be deleted.`,
+          )
+        )
+          return;
+        try {
+          const r = await fetch(
+              `${API_URL}/reports/lab/${LAB_ROUTE}/generated-reports`,
+              { method: "DELETE", credentials: "include" },
+            ),
+            j = await r.json();
+          if (!r.ok || !j.success)
+            throw new Error(j.message || "Unable to clear Lab history.");
+          generatedReports = [];
+          persistGeneratedReports();
+          renderGeneratedReports();
+          showMessage(
+            "successMessage",
+            "Lab report history cleared successfully.",
+          );
+        } catch (e) {
+          showMessage(
+            "errorMessage",
+            e.message || "Unable to clear Lab history.",
+          );
+        }
+      }
+      document
+        .getElementById("generatedReportsBody")
+        .addEventListener("click", async (e) => {
+          const b = e.target.closest("button");
+          if (!b) return;
+          const url = b.dataset.url;
+          if (
+            b.classList.contains("view-pdf") ||
+            b.classList.contains("view-excel") ||
+            b.classList.contains("download-pdf") ||
+            b.classList.contains("download-excel")
+          ) {
+            if (!url) {
+              showMessage("errorMessage", "File URL is not available.");
+              return;
+            }
+            window.open(url, "_blank", "noopener");
+            return;
+          }
+          if (b.dataset.action === "send-email") {
+            const id = b.dataset.reportId,
+              rpt = generatedReports.find(
+                (x) => String(x.id || x.reportId) === String(id),
+              );
+            if (!rpt) {
+              showMessage("errorMessage", "Selected report was not found.");
+              return;
+            }
+            const orig = b.textContent;
+            b.disabled = true;
+            b.textContent = "Sending...";
+            try {
+              const r = await fetch(
+                  `${API_URL}/reports/lab/${LAB_ROUTE}/send-email`,
+                  {
+                    method: "POST",
+                    credentials: "include",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      reportId: rpt.id || rpt.reportId,
+                      reportMonth: rpt.reportMonth,
+                      reportMonthName: rpt.reportMonthName,
+                      createdAt: rpt.createdAt,
+                      data: rpt.data || getReportData(),
+                    }),
+                  },
+                ),
+                j = await r.json();
+              if (!r.ok || !j.success)
+                throw new Error(
+                  j.message || "Unable to send Lab report email.",
+                );
+              showMessage(
+                "successMessage",
+                j.message || "Lab report email sent successfully.",
+              );
+            } catch (err) {
+              showMessage(
+                "errorMessage",
+                err.message || "Unable to send Lab report email.",
+              );
+            } finally {
+              b.disabled = false;
+              b.textContent = orig;
+            }
+          }
+        });
+      async function loadAdminProfile() {
+        try {
+          const r = await fetch(`${API_URL}/super-admin/dashboard`, {
+            method: "GET",
+            credentials: "include",
+          });
+          if (r.status === 401) {
+            location.href = "../login.html";
+            return;
+          }
+          const j = await r.json();
+          if (j && j.admin) {
+            setText("adminName", j.admin.name || "Super Admin");
+            setText("adminEmail", j.admin.email || "");
+          }
+        } catch (e) {}
+      }
+      document
+        .getElementById("logoutButton")
+        .addEventListener("click", async () => {
+          try {
+            await fetch(`${API_URL}/logout`, {
+              method: "POST",
+              credentials: "include",
+            });
+          } catch (e) {}
+          location.href = "../login.html";
+        });
+      document
+        .getElementById("refreshLiveDataButton")
+        .addEventListener("click", refreshLiveData);
+      document
+        .getElementById("generateReportButton")
+        .addEventListener("click", generateReport);
+      document
+        .getElementById("refreshHistoryButton")
+        .addEventListener("click", () => loadGeneratedReports(false));
+      document
+        .getElementById("clearHistoryButton")
+        .addEventListener("click", clearHistory);
+      (function init() {
+        const i = document.getElementById("reportMonth"),
+          d = new Date();
+        i.value =
+          d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0");
+        loadCachedGeneratedReports();
+        renderGeneratedReports();
+        loadAdminProfile();
+        refreshLiveData();
+        loadGeneratedReports(true);
+      })();
+    </script>
+  </body>
+</html>
