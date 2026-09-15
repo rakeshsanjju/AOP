@@ -3468,8 +3468,10 @@ async function parseAppsScriptResponse(
 
         throw new Error(
             `Google Apps Script returned HTML instead of JSON (HTTP ${response.status}, ` +
-            `host ${new URL(response.url).host}). Check the Web App deployment, access, ` +
-            "authorization and Apps Script execution logs."
+            `host ${new URL(response.url).host}). ` +
+            (response.status === 404
+                ? "The deployed Web App response was not found. Check the /exec deployment URL, deployment access, and Apps Script execution logs."
+                : "Check the Web App deployment, access, authorization, and Apps Script execution logs.")
         );
 
     }
@@ -3716,7 +3718,10 @@ async function callAppsScriptGet(
         requestReportKey
     );
 
-    const attempts = String(requestReportKey).toUpperCase() === "APTS" ? 2 : 1;
+    // A Google ContentService redirect can occasionally return an HTML error.
+    // Retry that response once for every source; never retry invalid JSON or
+    // an Apps Script JSON error, which needs a configuration/code fix.
+    const attempts = 2;
 
     for (let attempt = 1; attempt <= attempts; attempt++) {
         const response = await fetch(url.toString(), {
@@ -3729,6 +3734,7 @@ async function callAppsScriptGet(
         } catch (error) {
             if (
                 attempt === attempts ||
+                response.status !== 404 ||
                 !error.message.includes("returned HTML instead of JSON")
             ) {
                 throw error;
