@@ -3467,7 +3467,9 @@ async function parseAppsScriptResponse(
     ) {
 
         throw new Error(
-            "Google Apps Script returned HTML instead of JSON. Use the deployed Web App URL ending in /exec and deploy it with access Anyone."
+            `Google Apps Script returned HTML instead of JSON (HTTP ${response.status}, ` +
+            `host ${new URL(response.url).host}). Check the Web App deployment, access, ` +
+            "authorization and Apps Script execution logs."
         );
 
     }
@@ -3714,18 +3716,26 @@ async function callAppsScriptGet(
         requestReportKey
     );
 
-    const response =
-        await fetch(
-            url.toString(),
-            {
-                method: "GET",
-                redirect: "follow"
-            }
-        );
+    const attempts = String(requestReportKey).toUpperCase() === "APTS" ? 2 : 1;
 
-    return parseAppsScriptResponse(
-        response
-    );
+    for (let attempt = 1; attempt <= attempts; attempt++) {
+        const response = await fetch(url.toString(), {
+            method: "GET",
+            redirect: "follow"
+        });
+
+        try {
+            return await parseAppsScriptResponse(response);
+        } catch (error) {
+            if (
+                attempt === attempts ||
+                !error.message.includes("returned HTML instead of JSON")
+            ) {
+                throw error;
+            }
+            await new Promise(resolve => setTimeout(resolve, 750));
+        }
+    }
 
 }
 
@@ -8144,6 +8154,18 @@ const PAN_INDIA_LIVE_SOURCES = [
 
 ];
 
+async function mapWithConcurrency(items, limit, worker) {
+    const results = new Array(items.length);
+    let nextIndex = 0;
+    await Promise.all(Array.from({ length: Math.min(limit, items.length) }, async () => {
+        while (nextIndex < items.length) {
+            const index = nextIndex++;
+            results[index] = await worker(items[index]);
+        }
+    }));
+    return results;
+}
+
 
 function normalizePanIndiaParameterLabel(
     value
@@ -10124,8 +10146,9 @@ async function getPanIndiaLiveInput(
     try {
 
         const results =
-            await Promise.all(
-                PAN_INDIA_LIVE_SOURCES.map(
+            await mapWithConcurrency(
+                PAN_INDIA_LIVE_SOURCES,
+                2,
                     async source => {
 
                         try {
@@ -10377,7 +10400,6 @@ async function getPanIndiaLiveInput(
                         }
 
                     }
-                )
             );
 
 
