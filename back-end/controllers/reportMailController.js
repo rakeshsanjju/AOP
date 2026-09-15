@@ -3724,6 +3724,9 @@ async function callAppsScriptGet(
     const attempts = 2;
 
     for (let attempt = 1; attempt <= attempts; attempt++) {
+        // Each attempt needs a fresh ContentService redirect. Apps Script
+        // ignores this parameter; it prevents reuse of a stale 404 response.
+        url.searchParams.set("requestNonce", `${Date.now()}-${attempt}-${Math.random().toString(36).slice(2)}`);
         const response = await fetch(url.toString(), {
             method: "GET",
             redirect: "follow"
