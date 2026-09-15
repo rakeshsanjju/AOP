@@ -36,6 +36,20 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
+
+// Confirm whether report requests reach this Express process.
+app.use((req, res, next) => {
+    if (req.path.startsWith("/api/reports/")) {
+        const startedAt = Date.now();
+        res.on("finish", () => {
+            console.log(
+                `${req.method} ${req.originalUrl} ${res.statusCode} ` +
+                `${Date.now() - startedAt}ms origin=${req.headers.origin || "none"}`
+            );
+        });
+    }
+    next();
+});
 app.use(express.json({ limit: "20mb" }));
 app.use(express.urlencoded({ extended: true, limit: "20mb" }));
 
@@ -65,6 +79,14 @@ app.get("/", (req, res) => {
 
 app.get("/api/test", (req, res) => {
     res.json({ success: true, message: "API working successfully." });
+});
+
+app.get("/api/cors-check", (req, res) => {
+    res.json({
+        success: true,
+        origin: req.headers.origin || null,
+        message: "This response came from the Express backend."
+    });
 });
 
 app.use((req, res) => {
