@@ -7527,11 +7527,2435 @@ async function saveGeneratedReport(
 
 
         /*
-         * A 401/403 here means the backend session is genuinely
-         * missing or expired. After the login/backend fixes below,
-         * a valid session will remain available across Pan India,
-         * IP, OP and Google & FB report pages.
+         * IMPORTANT:
+         * Reload authoritative history from the
+         * MH Google Sheet after every successful save.
          */
+        const historyLoaded =
+            await loadGeneratedReportsFromExcel(
+                true
+            );
+
+
+        /*
+         * If history loading fails but report saving succeeded,
+         * keep the locally cached report available.
+         */
+        if (
+            !historyLoaded
+        ) {
+
+
+            persistGeneratedReports();
+
+
+            renderGeneratedReports();
+
+
+        }
+
+
+        return {
+
+            savedReport:
+                savedReport,
+
+            driveSaved:
+                true,
+
+            driveError:
+                ""
+
+        };
+
+
+    }
+    catch (
+        error
+    ) {
+
+
+        console.error(
+            "Google Sheet/Drive save error:",
+            error
+        );
+
+
+        savedReport.driveSaveError =
+            error.message
+            ||
+            "Unable to save data to Google Sheet and files to Google Drive.";
+
+
+        persistGeneratedReports();
+
+
+        renderGeneratedReports();
+
+
+        return {
+
+            savedReport:
+                savedReport,
+
+            driveSaved:
+                false,
+
+            driveError:
+                savedReport.driveSaveError
+
+        };
+
+
+    }
+
+
+}
+
+
+
+/* =====================================================
+   SAVE DATA TO GOOGLE SHEET + PDF/EXCEL TO GOOGLE DRIVE
+===================================================== */
+
+async function saveReportFilesToDrive(
+    report
+) {
+
+
+    const response =
+        await fetch(
+
+            `${API_URL}/reports/mh/save-drive`,
+
+            {
+
+                method:
+                    "POST",
+
+                credentials:
+                    "include",
+
+                headers: {
+
+                    "Content-Type":
+                        "application/json"
+
+                },
+
+                body:
+                    JSON.stringify(
+                        {
+
+                            reportId:
+                                report.id,
+
+                            reportMonth:
+                                report.reportMonth,
+
+                            reportMonthName:
+                                report.reportMonthName,
+
+                            createdAt:
+                                report.createdAt,
+
+                            data:
+                                report.data
+
+                        }
+                    )
+
+            }
+
+        );
+
+
+    let result =
+        {};
+
+
+    try {
+
+
+        result =
+            await response.json();
+
+
+    }
+    catch (
+        error
+    ) {
+
+
+        result =
+            {};
+
+
+    }
+
+
+    if (
+        !response.ok
+        ||
+        !result.success
+    ) {
+
+
+        throw new Error(
+
+            result.message
+            ||
+            `Google Sheet/Drive save failed. Server returned ${response.status}.`
+
+        );
+
+
+    }
+
+
+    return result;
+
+
+}
+
+
+
+/* =====================================================
+   LOCAL REPORT-HISTORY CACHE
+
+   This is only a fallback cache.
+   Main history source = MH Google Sheet.
+===================================================== */
+
+function persistGeneratedReports() {
+
+
+    localStorage.setItem(
+
+        STORAGE_KEY,
+
+        JSON.stringify(
+            generatedReports
+        )
+
+    );
+
+
+}
+
+
+
+/* =====================================================
+   NORMALIZE HISTORY REPORT FROM GOOGLE SHEET
+===================================================== */
+
+function normalizeHistoryReport(
+    report
+) {
+
+
+    const rawId =
+        report
+        &&
+        report.id !==
+        undefined
+            ?
+            report.id
+            :
+            Date.now();
+
+
+    const numericId =
+        Number(
+            rawId
+        );
+
+
+    return {
+
+
+        id:
+            Number.isFinite(
+                numericId
+            )
+                ?
+                numericId
+                :
+                String(
+                    rawId
+                ),
+
+
+        createdAt:
+            report.createdAt
+            ||
+            "",
+
+
+        reportMonth:
+            report.reportMonth
+            ||
+            "",
+
+
+        reportMonthName:
+            report.reportMonthName
+            ||
+            getMonthName(
+                report.reportMonth
+                ||
+                ""
+            ),
+
+
+        data:
+            normalizeCompleteStoredData(
+                report.data
+                ||
+                {}
+            ),
+
+
+        driveFiles:
+            Array.isArray(
+                report.driveFiles
+            )
+                ?
+                report.driveFiles
+                :
+                [],
+
+
+        driveFolderUrl:
+            report.driveFolderUrl
+            ||
+            "",
+
+
+        sheetUrl:
+            report.sheetUrl
+            ||
+            "",
+
+
+        sheetRow:
+            report.sheetRow
+            ||
+            null
+
+
+    };
+
+
+}
+
+
+
+/* =====================================================
+   LOAD REPORT HISTORY FROM MH GOOGLE SHEET
+
+   Endpoint:
+   GET /api/reports/mh/generated-reports
+===================================================== */
+
+async function loadGeneratedReportsFromExcel(
+    silent =
+        false
+) {
+
+
+    try {
+
+
+        const response =
+            await fetch(
+
+                `${API_URL}/reports/mh/generated-reports`,
+
+                {
+
+                    method:
+                        "GET",
+
+                    credentials:
+                        "include"
+
+                }
+
+            );
+
+
+        let result =
+            {};
+
+
+        try {
+
+
+            result =
+                await response.json();
+
+
+        }
+        catch (
+            error
+        ) {
+
+
+            result =
+                {};
+
+
+        }
+
+
+        if (
+            !response.ok
+            ||
+            !result.success
+        ) {
+
+
+            throw new Error(
+
+                result.message
+                ||
+                `Unable to load report history. Server returned ${response.status}.`
+
+            );
+
+
+        }
+
+
+        /*
+         * Keep the already-cached complete version by Report ID.
+         * This prevents a legacy Google-Sheet history row from
+         * erasing Revenue / Cost values that were present when
+         * the report was generated.
+         */
+        const cachedById =
+            new Map(
+                generatedReports.map(
+                    cachedReport => [
+                        String(
+                            cachedReport.id
+                        ),
+                        cachedReport
+                    ]
+                )
+            );
+
+
+        generatedReports =
+            Array.isArray(
+                result.reports
+            )
+                ?
+                result.reports
+                    .map(
+                        normalizeHistoryReport
+                    )
+                    .map(
+                        remoteReport =>
+
+                            mergeHistoryWithCachedReport(
+
+                                remoteReport,
+
+                                cachedById.get(
+                                    String(
+                                        remoteReport.id
+                                    )
+                                )
+
+                            )
+
+                    )
+                :
+                [];
+
+
+        /*
+         * Keep a browser fallback copy,
+         * but Google Sheet remains authoritative.
+         */
+        persistGeneratedReports();
+
+
+        renderGeneratedReports();
+
+
+        if (
+            !silent
+        ) {
+
+
+            showSuccess(
+
+                `Report history refreshed from MH sheet. ${generatedReports.length} report(s) loaded.`
+
+            );
+
+
+        }
+
+
+        return true;
+
+
+    }
+    catch (
+        error
+    ) {
+
+
+        console.error(
+            "Load report history from MH sheet error:",
+            error
+        );
+
+
+        /*
+         * Do not erase cached reports if remote history
+         * cannot be reached.
+         */
+        renderGeneratedReports();
+
+
+        if (
+            !silent
+        ) {
+
+
+            showWarning(
+
+                "Unable to load report history from MH sheet: "
+
+                +
+
+                (
+                    error.message
+                    ||
+                    "Unknown error."
+                )
+
+            );
+
+
+        }
+
+
+        return false;
+
+
+    }
+
+
+}
+
+
+
+/* =====================================================
+   REPORT HISTORY
+===================================================== */
+
+function renderGeneratedReports() {
+
+
+    const body =
+        document.getElementById(
+            "generatedReportsBody"
+        );
+
+
+    const count =
+        document.getElementById(
+            "reportCount"
+        );
+
+
+    body.innerHTML =
+        "";
+
+
+    count.textContent =
+
+        generatedReports.length
+
+        +
+
+        (
+            generatedReports.length ===
+            1
+
+                ?
+                " Report"
+
+                :
+                " Reports"
+        );
+
+
+    if (
+        generatedReports.length ===
+        0
+    ) {
+
+
+        body.innerHTML =
+            `
+
+            <tr>
+
+                <td
+                    colspan="8"
+                    class="empty-reports"
+                >
+                    No Maharashtra reports found in the MH sheet.
+                </td>
+
+            </tr>
+
+            `;
+
+
+        return;
+
+
+    }
+
+
+    generatedReports.forEach(
+        report => {
+
+
+            const summary =
+                getReportSummary(
+                    report.data
+                );
+
+
+            const row =
+                document.createElement(
+                    "tr"
+                );
+
+
+            row.innerHTML =
+                `
+
+                <td>
+
+                    ${
+                        formatDateTime(
+                            report.createdAt
+                        )
+                    }
+
+                </td>
+
+
+                <td>
+
+                    <strong>
+
+                        ${
+                            report.reportMonthName
+                        }
+
+                    </strong>
+
+                </td>
+
+
+                <td>
+
+                    ${summary}
+
+                </td>
+
+
+                <td>
+
+                    <button
+                        type="button"
+                        class="
+                            table-button
+                            view-pdf
+                        "
+                        onclick="
+                            viewPDF(
+                                ${report.id}
+                            )
+                        "
+                    >
+                        View PDF
+                    </button>
+
+                </td>
+
+
+                <td>
+
+                    <button
+                        type="button"
+                        class="
+                            table-button
+                            view-excel
+                        "
+                        onclick="
+                            viewExcel(
+                                ${report.id}
+                            )
+                        "
+                    >
+                        View Excel
+                    </button>
+
+                </td>
+
+
+                <td>
+
+                    <button
+                        type="button"
+                        class="
+                            table-button
+                            download-pdf
+                        "
+                        onclick="
+                            downloadPDF(
+                                ${report.id}
+                            )
+                        "
+                    >
+                        Download PDF
+                    </button>
+
+                </td>
+
+
+                <td>
+
+                    <button
+                        type="button"
+                        class="
+                            table-button
+                            download-excel
+                        "
+                        onclick="
+                            downloadExcel(
+                                ${report.id}
+                            )
+                        "
+                    >
+                        Download Excel
+                    </button>
+
+                </td>
+
+
+                <td>
+
+                    <button
+                        type="button"
+                        class="
+                            table-button
+                            send-mail
+                        "
+                        onclick="
+                            sendReportEmail(
+                                ${report.id},
+                                this
+                            )
+                        "
+                    >
+                        Send Email (2)
+                    </button>
+
+                </td>
+
+                `;
+
+
+            body.appendChild(
+                row
+            );
+
+
+        }
+    );
+
+
+}
+
+
+
+/* =====================================================
+   REPORT SUMMARY
+===================================================== */
+
+function getReportSummary(
+    report
+) {
+
+    const data =
+        normalizeCompleteStoredData(
+            report
+        );
+
+
+    let achieved =
+        0;
+
+
+    let failed =
+        0;
+
+
+    let missing =
+        0;
+
+
+    Object.keys(
+        METRICS
+    ).forEach(
+        key => {
+
+            const metric =
+                data[
+                    key
+                ];
+
+
+            const status =
+                calculateStatus(
+                    metric.target,
+                    metric.achieved
+                );
+
+
+            if (
+                status.type ===
+                "success"
+            ) {
+
+                achieved++;
+
+            }
+            else if (
+                status.type ===
+                "failed"
+            ) {
+
+                failed++;
+
+            }
+            else {
+
+                missing++;
+
+            }
+
+        }
+    );
+
+
+    const parts = [
+
+        achieved
+        +
+        " Achieved / "
+        +
+        failed
+        +
+        " Not Achieved"
+        +
+        (
+            missing > 0
+                ?
+                " / "
+                +
+                missing
+                +
+                " Missing"
+                :
+                ""
+        ),
+
+        "IP Revenue: "
+        +
+        formatCurrency(
+            data.ipRevenue.target
+        )
+        +
+        " / "
+        +
+        formatCurrency(
+            data.ipRevenue.achieved
+        ),
+
+        "OP Revenue: "
+        +
+        formatCurrency(
+            data.opRevenue.target
+        )
+        +
+        " / "
+        +
+        formatCurrency(
+            data.opRevenue.achieved
+        ),
+
+        "IP Cost/Person: "
+        +
+        formatCurrency(
+            data.ipCostPerPerson.target
+        )
+        +
+        " / "
+        +
+        formatCurrency(
+            data.ipCostPerPerson.achieved
+        ),
+
+        "Discount/Person: "
+        +
+        formatCurrency(
+            data.discountPerPerson.achieved
+        )
+
+    ];
+
+
+    return parts.join(
+        " | "
+    );
+
+}
+
+
+
+/* =====================================================
+   FIND REPORT
+===================================================== */
+
+function findReport(
+    id
+) {
+
+
+    return generatedReports.find(
+
+        report =>
+            String(
+                report.id
+            ) ===
+            String(
+                id
+            )
+
+    );
+
+
+}
+
+
+
+/* =====================================================
+   STORED GOOGLE DRIVE FILE HELPERS
+
+   PDF and Excel are generated by the backend when the
+   report is saved. The browser opens/downloads those
+   stored Drive files, so no jsPDF/XLSX CDN is required.
+===================================================== */
+
+function getStoredDriveFile(
+    report,
+    kind
+) {
+
+    if (
+        !report ||
+        !Array.isArray(
+            report.driveFiles
+        )
+    ) {
+        return null;
+    }
+
+    const wanted =
+        String(
+            kind ||
+            ""
+        )
+            .toLowerCase();
+
+    return report.driveFiles.find(
+        file => {
+
+            if (
+                !file ||
+                typeof file !==
+                "object"
+            ) {
+                return false;
+            }
+
+            const type =
+                String(
+                    file.type ||
+                    ""
+                )
+                    .toLowerCase();
+
+            const name =
+                String(
+                    file.name ||
+                    ""
+                )
+                    .toLowerCase();
+
+            const mimeType =
+                String(
+                    file.mimeType ||
+                    ""
+                )
+                    .toLowerCase();
+
+            if (
+                wanted ===
+                "pdf"
+            ) {
+
+                return (
+                    type ===
+                    "pdf"
+                    ||
+                    mimeType ===
+                    "application/pdf"
+                    ||
+                    name.endsWith(
+                        ".pdf"
+                    )
+                );
+
+            }
+
+            if (
+                wanted ===
+                "excel"
+            ) {
+
+                return (
+                    type ===
+                    "excel"
+                    ||
+                    type ===
+                    "xlsx"
+                    ||
+                    mimeType.includes(
+                        "spreadsheet"
+                    )
+                    ||
+                    mimeType.includes(
+                        "excel"
+                    )
+                    ||
+                    name.endsWith(
+                        ".xlsx"
+                    )
+                    ||
+                    name.endsWith(
+                        ".xls"
+                    )
+                );
+
+            }
+
+            return false;
+
+        }
+    ) || null;
+
+}
+
+
+function getGoogleDriveFileId(
+    url
+) {
+
+    const value =
+        String(
+            url ||
+            ""
+        );
+
+    let match =
+        value.match(
+            /\/d\/([a-zA-Z0-9_-]+)/
+        );
+
+    if (
+        match &&
+        match[1]
+    ) {
+        return match[1];
+    }
+
+    match =
+        value.match(
+            /[?&]id=([a-zA-Z0-9_-]+)/
+        );
+
+    return (
+        match &&
+        match[1]
+    )
+        ?
+        match[1]
+        :
+        "";
+
+}
+
+
+function getDriveDownloadUrl(
+    url
+) {
+
+    const fileId =
+        getGoogleDriveFileId(
+            url
+        );
+
+    if (
+        !fileId
+    ) {
+        return url;
+    }
+
+    return (
+        "https://drive.google.com/uc?export=download&id="
+        +
+        encodeURIComponent(
+            fileId
+        )
+    );
+
+}
+
+
+/* =====================================================
+   VIEW PDF
+===================================================== */
+
+function viewPDF(
+    id
+) {
+
+    const report =
+        findReport(
+            id
+        );
+
+    if (
+        !report
+    ) {
+
+        alert(
+            "Report not found."
+        );
+
+        return;
+    }
+
+    const pdfFile =
+        getStoredDriveFile(
+            report,
+            "pdf"
+        );
+
+    if (
+        !pdfFile ||
+        !pdfFile.url
+    ) {
+
+        alert(
+            "Stored PDF is not available yet. Generate the report successfully so the backend can save the PDF to Google Drive, then refresh history."
+        );
+
+        return;
+    }
+
+    window.open(
+        pdfFile.url,
+        "_blank",
+        "noopener,noreferrer"
+    );
+
+}
+
+
+/* =====================================================
+   DOWNLOAD PDF
+===================================================== */
+
+function downloadPDF(
+    id
+) {
+
+    const report =
+        findReport(
+            id
+        );
+
+    if (
+        !report
+    ) {
+
+        alert(
+            "Report not found."
+        );
+
+        return;
+    }
+
+    const pdfFile =
+        getStoredDriveFile(
+            report,
+            "pdf"
+        );
+
+    if (
+        !pdfFile ||
+        !pdfFile.url
+    ) {
+
+        alert(
+            "Stored PDF is not available yet. Generate the report successfully and refresh history."
+        );
+
+        return;
+    }
+
+    const link =
+        document.createElement(
+            "a"
+        );
+
+    link.href =
+        getDriveDownloadUrl(
+            pdfFile.url
+        );
+
+    link.target =
+        "_blank";
+
+    link.rel =
+        "noopener noreferrer";
+
+    document.body.appendChild(
+        link
+    );
+
+    link.click();
+
+    link.remove();
+
+}
+
+
+/* =====================================================
+   VIEW EXCEL
+===================================================== */
+
+function viewExcel(
+    id
+) {
+
+
+    const report =
+        findReport(
+            id
+        );
+
+
+    if (!report) {
+
+        return;
+
+    }
+
+
+    const rows =
+        createExportRows(
+            report
+        );
+
+
+    let tableHTML =
+        `
+
+        <table class="performance-table">
+
+            <thead>
+
+                <tr>
+
+                    <th>
+                        Particular
+                    </th>
+
+                    <th>
+                        Target
+                    </th>
+
+                    <th>
+                        Achieved
+                    </th>
+
+                    <th>
+                        Result
+                    </th>
+
+                </tr>
+
+            </thead>
+
+            <tbody>
+
+        `;
+
+
+    rows.forEach(
+        row => {
+
+
+            tableHTML +=
+                `
+
+                <tr>
+
+                    <td>
+                        ${row.Particular}
+                    </td>
+
+                    <td>
+                        ${row.Target}
+                    </td>
+
+                    <td>
+                        ${row.Achieved}
+                    </td>
+
+                    <td>
+                        ${row.Result}
+                    </td>
+
+                </tr>
+
+                `;
+
+
+        }
+    );
+
+
+    tableHTML +=
+        `
+
+            </tbody>
+
+        </table>
+
+        `;
+
+
+    document
+        .getElementById(
+            "excelPreviewTitle"
+        )
+        .textContent =
+
+            report.reportMonthName
+
+            +
+
+            " - Report Preview";
+
+
+    document
+        .getElementById(
+            "excelPreviewBody"
+        )
+        .innerHTML =
+            tableHTML;
+
+
+    document
+        .getElementById(
+            "excelPreviewModal"
+        )
+        .classList
+        .add(
+            "show"
+        );
+
+
+}
+
+
+
+/* =====================================================
+   EXPORT ROWS
+===================================================== */
+
+function createExportRows(
+    savedReport
+) {
+
+
+    const rows =
+        [];
+
+
+    Object.keys(
+        METRICS
+    ).forEach(
+        key => {
+
+
+            const config =
+                METRICS[
+                    key
+                ];
+
+
+            const metric =
+                savedReport
+                    .data[
+                        key
+                    ];
+
+
+            const status =
+                calculateStatus(
+
+                    metric.target,
+
+                    metric.achieved
+
+                );
+
+
+            rows.push({
+
+
+                Particular:
+                    config.label,
+
+
+                Target:
+                    formatMetricValue(
+
+                        metric.target,
+
+                        config.type
+
+                    ),
+
+
+                Achieved:
+                    formatMetricValue(
+
+                        metric.achieved,
+
+                        config.type
+
+                    ),
+
+
+                Result:
+                    status.title
+
+
+            });
+
+
+        }
+    );
+
+
+    return rows;
+
+
+}
+
+
+
+/* =====================================================
+   DOWNLOAD EXCEL
+===================================================== */
+
+function downloadExcel(
+    id
+) {
+
+    const report =
+        findReport(
+            id
+        );
+
+    if (
+        !report
+    ) {
+
+        alert(
+            "Report not found."
+        );
+
+        return;
+    }
+
+    const excelFile =
+        getStoredDriveFile(
+            report,
+            "excel"
+        );
+
+    if (
+        !excelFile ||
+        !excelFile.url
+    ) {
+
+        alert(
+            "Stored Excel file is not available yet. Generate the report successfully and refresh history."
+        );
+
+        return;
+    }
+
+    const link =
+        document.createElement(
+            "a"
+        );
+
+    link.href =
+        getDriveDownloadUrl(
+            excelFile.url
+        );
+
+    link.target =
+        "_blank";
+
+    link.rel =
+        "noopener noreferrer";
+
+    document.body.appendChild(
+        link
+    );
+
+    link.click();
+
+    link.remove();
+
+}
+
+
+
+/* =====================================================
+   SEND REPORT BY EMAIL
+===================================================== */
+
+async function sendReportEmail(
+    reportId,
+    button
+) {
+
+
+    const report =
+        findReport(
+            reportId
+        );
+
+
+    if (
+        !report
+    ) {
+
+
+        alert(
+            "Report not found."
+        );
+
+
+        return;
+
+
+    }
+
+
+    const originalText =
+        button
+            ?
+            button.textContent
+            :
+            "Send Email (2)";
+
+
+    if (
+        button
+    ) {
+
+
+        button.disabled =
+            true;
+
+
+        button.textContent =
+            "Sending...";
+
+
+    }
+
+
+    try {
+
+
+        const response =
+            await fetch(
+
+                `${API_URL}/reports/mh/send-email`,
+
+                {
+
+                    method:
+                        "POST",
+
+                    credentials:
+                        "include",
+
+                    headers: {
+
+                        "Content-Type":
+                            "application/json"
+
+                    },
+
+                    body:
+                        JSON.stringify(
+                            {
+
+                                reportId:
+                                    report.id,
+
+                                reportMonth:
+                                    report.reportMonth,
+
+                                reportMonthName:
+                                    report.reportMonthName,
+
+                                createdAt:
+                                    report.createdAt,
+
+                                /*
+                                 * Always send the COMPLETE report.
+                                 * Missing cost/discount values are
+                                 * derived before the request is sent.
+                                 */
+                                data:
+                                    getCompleteDataForStoredReport(
+                                        report
+                                    )
+
+                            }
+                        )
+
+                }
+
+            );
+
+
+        let result =
+            {};
+
+
+        try {
+
+
+            result =
+                await response.json();
+
+
+        }
+        catch (
+            jsonError
+        ) {
+
+
+            result = {};
+
+
+        }
+
+
+        if (
+            !response.ok
+            ||
+            !result.success
+        ) {
+
+
+            throw new Error(
+
+                result.message
+
+                ||
+
+                `Unable to send email. Server returned ${response.status}.`
+
+            );
+
+
+        }
+
+
+        if (
+            button
+        ) {
+
+
+            button.textContent =
+                "Sent ✓";
+
+
+        }
+
+
+        alert(
+
+            result.message
+
+            ||
+
+            (
+                Number(result.recipientCount) >= 2
+                    ?
+                    "Maharashtra IP report sent successfully to both configured recipients."
+                    :
+                    "Maharashtra IP report sent successfully."
+            )
+
+        );
+
+
+        setTimeout(
+            () => {
+
+
+                if (
+                    button
+                ) {
+
+
+                    button.disabled =
+                        false;
+
+
+                    button.textContent =
+                        originalText;
+
+
+                }
+
+
+            },
+            2500
+        );
+
+
+    }
+    catch (
+        error
+    ) {
+
+
+        console.error(
+            "Send email error:",
+            error
+        );
+
+
+        if (
+            button
+        ) {
+
+
+            button.disabled =
+                false;
+
+
+            button.textContent =
+                originalText;
+
+
+        }
+
+
+        alert(
+
+            error.message
+
+            ||
+
+            "Unable to send the report email."
+
+        );
+
+
+    }
+
+
+}
+
+
+
+/* =====================================================
+   REFRESH HISTORY FROM APTS SHEET
+===================================================== */
+
+document
+    .getElementById(
+        "refreshHistoryButton"
+    )
+    .addEventListener(
+        "click",
+        async function () {
+
+
+            clearMessages();
+
+
+            await loadGeneratedReportsFromExcel(
+                false
+            );
+
+
+        }
+    );
+
+
+
+/* =====================================================
+   CLEAR HISTORY FROM MH SHEET
+
+   This clears Maharashtra report rows from the MH sheet.
+   It does NOT delete PDF/Excel files from Google Drive.
+===================================================== */
+
+document
+    .getElementById(
+        "clearHistoryButton"
+    )
+    .addEventListener(
+        "click",
+        async function () {
+
+
+            const confirmation =
+                confirm(
+
+                    "Clear all Maharashtra generated report history from the MH Google Sheet? PDF/Excel files in Google Drive will not be deleted."
+
+                );
+
+
+            if (
+                !confirmation
+            ) {
+
+
+                return;
+
+
+            }
+
+
+            clearMessages();
+
+
+            try {
+
+
+                const response =
+                    await fetch(
+
+                        `${API_URL}/reports/mh/generated-reports`,
+
+                        {
+
+                            method:
+                                "DELETE",
+
+                            credentials:
+                                "include"
+
+                        }
+
+                    );
+
+
+                let result =
+                    {};
+
+
+                try {
+
+
+                    result =
+                        await response.json();
+
+
+                }
+                catch (
+                    error
+                ) {
+
+
+                    result =
+                        {};
+
+
+                }
+
+
+                if (
+                    !response.ok
+                    ||
+                    !result.success
+                ) {
+
+
+                    throw new Error(
+
+                        result.message
+                        ||
+                        `Unable to clear report history. Server returned ${response.status}.`
+
+                    );
+
+
+                }
+
+
+                generatedReports =
+                    [];
+
+
+                localStorage.removeItem(
+                    STORAGE_KEY
+                );
+
+
+                renderGeneratedReports();
+
+
+                showSuccess(
+
+                    "Maharashtra generated report history cleared from the MH sheet."
+
+                );
+
+
+            }
+            catch (
+                error
+            ) {
+
+
+                console.error(
+                    "Clear MH history error:",
+                    error
+                );
+
+
+                showError(
+
+                    error.message
+                    ||
+                    "Unable to clear Maharashtra report history from the MH sheet."
+
+                );
+
+
+            }
+
+
+        }
+    );
+
+
+
+/* =====================================================
+   CLOSE MODAL
+===================================================== */
+
+document
+    .getElementById(
+        "closeExcelModal"
+    )
+    .addEventListener(
+        "click",
+        function () {
+
+
+            document
+                .getElementById(
+                    "excelPreviewModal"
+                )
+                .classList
+                .remove(
+                    "show"
+                );
+
+
+        }
+    );
+
+
+document
+    .getElementById(
+        "excelPreviewModal"
+    )
+    .addEventListener(
+        "click",
+        function (
+            event
+        ) {
+
+
+            if (
+                event.target ===
+                this
+            ) {
+
+
+                this.classList.remove(
+                    "show"
+                );
+
+
+            }
+
+
+        }
+    );
+
+
+
+/* =====================================================
+   VALID NUMBER
+===================================================== */
+
+function validNumber(
+    value
+) {
+
+
+    return (
+
+        value !==
+        null
+
+        &&
+
+        value !==
+        undefined
+
+        &&
+
+        value !==
+        ""
+
+        &&
+
+        Number.isFinite(
+            Number(
+                value
+            )
+        )
+
+    );
+
+
+}
+
+
+
+/* =====================================================
+   FORMAT VALUE
+===================================================== */
+
+function formatMetricValue(
+    value,
+    type
+) {
+
+
+    if (
+        !validNumber(
+            value
+        )
+    ) {
+
+
+        return "N/A";
+
+
+    }
+
+
+    if (
+        type ===
+        "percent"
+    ) {
+
+
+        return Number(
+            value
+        ).toFixed(
+            2
+        ) + "%";
+
+
+    }
+
+
+    return new Intl.NumberFormat(
+        "en-IN",
+        {
+
+            maximumFractionDigits:
+                2
+
+        }
+    ).format(
+        Number(
+            value
+        )
+    );
+
+
+}
+
+
+
+/* =====================================================
+   FORMAT CURRENCY
+===================================================== */
+
+function formatCurrency(
+    value
+) {
+
+    if (
+        !validNumber(
+            value
+        )
+    ) {
+
+        return "N/A";
+
+    }
+
+
+    return new Intl.NumberFormat(
+        "en-IN",
+        {
+            style: "currency",
+            currency: "INR",
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 2
+        }
+    ).format(
+        Number(
+            value
+        )
+    );
+
+}
+
+
+/* =====================================================
+   DATE/TIME
+===================================================== */
+
+function formatDateTime(
+    value
+) {
+
+
+    return new Date(
+        value
+    ).toLocaleString(
+
+        "en-IN",
+
+        {
+
+            day:
+                "2-digit",
+
+            month:
+                "short",
+
+            year:
+                "numeric",
+
+            hour:
+                "2-digit",
+
+            minute:
+                "2-digit",
+
+            second:
+                "2-digit",
+
+            hour12:
+                true
+
+        }
+
+    );
+
+
+}
+
+
+
+/* =====================================================
+   MONTH NAME
+===================================================== */
+
+function getMonthName(
+    value
+) {
+
+
+    const [
+        year,
+        month
+    ] =
+        value
+            .split(
+                "-"
+            )
+            .map(
+                Number
+            );
+
+
+    return new Date(
+
+        year,
+
+        month - 1,
+
+        1
+
+    ).toLocaleString(
+
+        "en-IN",
+
+        {
+
+            month:
+                "long",
+
+            year:
+                "numeric"
+
+        }
+
+    );
+
+
+}
+
+
+
+/* =====================================================
+   FILE NAME
+===================================================== */
+
+function createFileName(
+    report,
+    extension
+) {
+
+
+    const month =
+        report.reportMonthName
+            .replace(
+                /\s+/g,
+                "-"
+            );
+
+
+    return (
+
+        "AP-TS-Performance-Report-"
+
+        +
+
+        month
+
+        +
+
+        "."
+
+        +
+
+        extension
+
+    );
+
+
+}
+
+
+
+/* =====================================================
+   MESSAGES
+===================================================== */
+
+function clearMessages() {
+
+
+    errorMessage
+        .classList
+        .remove(
+            "show"
+        );
+
+
+    successMessage
+        .classList
+        .remove(
+            "show"
+        );
+
+
+    warningMessage
+        .classList
+        .remove(
+            "show"
+        );
+
+
+}
+
+
+
+function showError(
+    message
+) {
+
+
+    clearMessages();
+
+
+    errorMessage.textContent =
+        message;
+
+
+    errorMessage
+        .classList
+        .add(
+            "show"
+        );
+
+
+}
+
+
+
+function showSuccess(
+    message
+) {
+
+
+    clearMessages();
+
+
+    successMessage.textContent =
+        message;
+
+
+    successMessage
+        .classList
+        .add(
+            "show"
+        );
+
+
+}
+
+
+
+function showWarning(
+    message
+) {
+
+
+    clearMessages();
+
+
+    warningMessage.textContent =
+        message;
+
+
+    warningMessage
+        .classList
+        .add(
+            "show"
+        );
+
+
+}
+
+
+
+/* =====================================================
+   AUTHENTICATION
+===================================================== */
+
+async function checkAuthentication() {
+
+
+    try {
+
+
+        const response =
+            await fetch(
+
+                `${API_URL}/super-admin/dashboard`,
+
+                {
+
+                    method:
+                        "GET",
+
+                    credentials:
+                        "include"
+
+                }
+
+            );
+
+
         if (
             response.status === 401 ||
             response.status === 403
@@ -7542,19 +9966,10 @@ async function saveGeneratedReport(
             return false;
         }
 
-
-
-
-        if (
-            !response.ok
-        ) {
-
-
+        if (!response.ok) {
             throw new Error(
                 `Authentication check failed with HTTP ${response.status}`
             );
-
-
         }
 
 
@@ -7562,61 +9977,43 @@ async function saveGeneratedReport(
             await response.json();
 
 
+        if (!data.success) {
+            throw new Error(
+                data.message ||
+                "Authentication check returned an invalid response"
+            );
+        }
+
+
         if (
-            data &&
-            data.success &&
             data.admin
         ) {
 
 
-            const adminName =
-                document.getElementById(
+            document
+                .getElementById(
                     "adminName"
-                );
+                )
+                .textContent =
 
-
-            const adminEmail =
-                document.getElementById(
-                    "adminEmail"
-                );
-
-
-            if (
-                adminName
-            ) {
-
-
-                adminName.textContent =
                     data.admin.name
+
                     ||
+
                     "Super Admin";
 
 
-            }
+            document
+                .getElementById(
+                    "adminEmail"
+                )
+                .textContent =
 
-
-            if (
-                adminEmail
-            ) {
-
-
-                adminEmail.textContent =
                     data.admin.email
+
                     ||
+
                     "";
-
-
-            }
-
-
-        }
-        else {
-
-
-            console.warn(
-                "Dashboard authentication response did not contain admin data.",
-                data
-            );
 
 
         }
@@ -7632,35 +10029,16 @@ async function saveGeneratedReport(
     ) {
 
 
-        /*
-         * A temporary network/CORS problem must not send the user back
-         * to login while moving between report pages.
-         */
         console.error(
-            "Authentication check error:",
+            "Authentication error:",
             error
         );
 
 
-        const adminEmail =
-            document.getElementById(
-                "adminEmail"
-            );
-
-
-        if (
-            adminEmail
-        ) {
-
-
-            adminEmail.textContent =
-                "Session check unavailable";
-
-
-        }
-
-
-        return true;
+        showError(
+            "Unable to verify your session. Please refresh the page."
+        );
+        return false;
 
 
     }
@@ -7748,27 +10126,26 @@ async function initializePage() {
     );
 
 
-    /*
-     * Verify the admin profile without using the dashboard endpoint
-     * as a hard navigation gate. This prevents state-page navigation
-     * from bouncing back to login.
-     */
-    await checkAuthentication();
+    const authenticated =
+        await checkAuthentication();
 
 
-    /*
-     * Load the Maharashtra report regardless of whether the optional
-     * dashboard profile check was temporarily unavailable.
-     * Protected backend endpoints still validate the real session.
-     */
-    await loadLiveInputData(
-        true
-    );
+    if (
+        authenticated
+    ) {
 
 
-    await loadGeneratedReportsFromExcel(
-        true
-    );
+        await loadLiveInputData(
+            true
+        );
+
+
+        await loadGeneratedReportsFromExcel(
+            true
+        );
+
+
+    }
 
 
 }
