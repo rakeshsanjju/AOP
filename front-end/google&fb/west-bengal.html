@@ -1612,7 +1612,7 @@
 ===================================================== */
 
 const API_URL =
-    "http://127.0.0.1:3000/api";
+    "https://aop-production-f1ca.up.railway.app/api";
 
 
 const LEADS_STORAGE_KEY =
@@ -2777,12 +2777,14 @@ async function refreshLiveData() {
 
 
         if (
-            response.status ===
-            401
+            response.status === 401
+            ||
+            response.status === 403
         ) {
 
-            window.location.href =
-                "../login.html";
+            window.location.replace(
+                "../login.html"
+            );
 
             return;
 
@@ -3557,12 +3559,14 @@ async function loadGeneratedReports(
 
 
         if (
-            response.status ===
-            401
+            response.status === 401
+            ||
+            response.status === 403
         ) {
 
-            window.location.href =
-                "../login.html";
+            window.location.replace(
+                "../login.html"
+            );
 
             return;
 
@@ -4339,26 +4343,66 @@ async function loadAdminProfile() {
                         "GET",
 
                     credentials:
-                        "include"
+                        "include",
+
+                    cache:
+                        "no-store"
                 }
             );
 
 
+        /*
+         * Redirect only when Railway confirms that the
+         * current session is genuinely unauthorized.
+         */
         if (
-            response.status ===
-            401
+            response.status === 401
+            ||
+            response.status === 403
         ) {
 
-            window.location.href =
-                "../login.html";
+            window.location.replace(
+                "../login.html"
+            );
 
-            return;
-
+            return false;
         }
 
 
-        const data =
-            await response.json();
+        let data =
+            {};
+
+        try {
+
+            data =
+                await response.json();
+
+        }
+        catch (
+            jsonError
+        ) {
+
+            console.error(
+                "Admin profile JSON error:",
+                jsonError
+            );
+
+            throw new Error(
+                `Authentication service returned an invalid response (${response.status}).`
+            );
+        }
+
+
+        if (
+            !response.ok
+        ) {
+
+            throw new Error(
+                data.message
+                ||
+                `Unable to verify login. Server returned ${response.status}.`
+            );
+        }
 
 
         if (
@@ -4384,6 +4428,9 @@ async function loadAdminProfile() {
 
         }
 
+
+        return true;
+
     }
     catch (
         error
@@ -4393,6 +4440,27 @@ async function loadAdminProfile() {
             "Admin profile error:",
             error
         );
+
+
+        /*
+         * Do not falsely log out the user for network,
+         * CORS or temporary backend errors.
+         */
+        setText(
+            "adminEmail",
+            "Unable to verify session"
+        );
+
+
+        showMessage(
+            "errorMessage",
+            error.message
+            ||
+            "Unable to verify your login session. Please refresh the page."
+        );
+
+
+        return false;
 
     }
 
