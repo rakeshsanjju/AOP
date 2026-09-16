@@ -4215,7 +4215,20 @@ function renderPanIndia(
             failures
                 .map(
                     failure =>
-                        `${failure.label}: ${failure.message}`
+                        (
+                            failure.label === "Maharashtra"
+                            &&
+                            String(
+                                failure.message ||
+                                ""
+                            ).includes(
+                                "HTTP 404"
+                            )
+                        )
+                            ?
+                            "Maharashtra: Apps Script deployment is unavailable. Deploy the latest Code.gs as a NEW Web App version and set MH_APPS_SCRIPT_WEB_APP_URL in Railway to that new /exec URL."
+                            :
+                            `${failure.label}: ${failure.message}`
                 )
                 .join(
                     " | "
