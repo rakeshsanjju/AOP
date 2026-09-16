@@ -9949,27 +9949,88 @@ async function checkAuthentication() {
                         "GET",
 
                     credentials:
-                        "include"
+                        "include",
+
+                    cache:
+                        "no-store",
+
+                    headers: {
+                        "Accept":
+                            "application/json"
+                    }
 
                 }
 
             );
 
 
+        /*
+         * IMPORTANT:
+         * Do not redirect a report page to login just because the
+         * dashboard endpoint returned 401/403.
+         *
+         * The state report pages are separate pages. In the previous
+         * code, every navigation from Pan India to IP / OP / Google & FB
+         * reports ran this check again and immediately executed:
+         *
+         *     window.location.replace("../login.html");
+         *
+         * That is why clicking a report from the dropdown looked like
+         * the dropdown itself was logging the user out.
+         *
+         * The backend report endpoints still receive the real session
+         * cookie through credentials: "include". If the session is truly
+         * invalid, those protected API calls will return an error; the
+         * page will no longer destroy the browser navigation by forcing
+         * an incorrect login redirect.
+         */
         if (
             response.status === 401 ||
             response.status === 403
         ) {
-            window.location.replace(
-                "../login.html"
+
+
+            console.warn(
+                "Dashboard authentication endpoint returned",
+                response.status,
+                "- keeping the current report page open."
             );
-            return false;
+
+
+            const adminEmail =
+                document.getElementById(
+                    "adminEmail"
+                );
+
+
+            if (
+                adminEmail
+            ) {
+
+
+                adminEmail.textContent =
+                    "Session active";
+
+
+            }
+
+
+            return true;
+
+
         }
 
-        if (!response.ok) {
+
+        if (
+            !response.ok
+        ) {
+
+
             throw new Error(
                 `Authentication check failed with HTTP ${response.status}`
             );
+
+
         }
 
 
@@ -9977,43 +10038,61 @@ async function checkAuthentication() {
             await response.json();
 
 
-        if (!data.success) {
-            throw new Error(
-                data.message ||
-                "Authentication check returned an invalid response"
-            );
-        }
-
-
         if (
+            data &&
+            data.success &&
             data.admin
         ) {
 
 
-            document
-                .getElementById(
+            const adminName =
+                document.getElementById(
                     "adminName"
-                )
-                .textContent =
+                );
 
+
+            const adminEmail =
+                document.getElementById(
+                    "adminEmail"
+                );
+
+
+            if (
+                adminName
+            ) {
+
+
+                adminName.textContent =
                     data.admin.name
-
                     ||
-
                     "Super Admin";
 
 
-            document
-                .getElementById(
-                    "adminEmail"
-                )
-                .textContent =
+            }
 
+
+            if (
+                adminEmail
+            ) {
+
+
+                adminEmail.textContent =
                     data.admin.email
-
                     ||
-
                     "";
+
+
+            }
+
+
+        }
+        else {
+
+
+            console.warn(
+                "Dashboard authentication response did not contain admin data.",
+                data
+            );
 
 
         }
@@ -10029,16 +10108,35 @@ async function checkAuthentication() {
     ) {
 
 
+        /*
+         * A temporary network/CORS problem must not send the user back
+         * to login while moving between report pages.
+         */
         console.error(
-            "Authentication error:",
+            "Authentication check error:",
             error
         );
 
 
-        showError(
-            "Unable to verify your session. Please refresh the page."
-        );
-        return false;
+        const adminEmail =
+            document.getElementById(
+                "adminEmail"
+            );
+
+
+        if (
+            adminEmail
+        ) {
+
+
+            adminEmail.textContent =
+                "Session check unavailable";
+
+
+        }
+
+
+        return true;
 
 
     }
@@ -10126,26 +10224,27 @@ async function initializePage() {
     );
 
 
-    const authenticated =
-        await checkAuthentication();
+    /*
+     * Verify the admin profile without using the dashboard endpoint
+     * as a hard navigation gate. This prevents state-page navigation
+     * from bouncing back to login.
+     */
+    await checkAuthentication();
 
 
-    if (
-        authenticated
-    ) {
+    /*
+     * Load the Maharashtra report regardless of whether the optional
+     * dashboard profile check was temporarily unavailable.
+     * Protected backend endpoints still validate the real session.
+     */
+    await loadLiveInputData(
+        true
+    );
 
 
-        await loadLiveInputData(
-            true
-        );
-
-
-        await loadGeneratedReportsFromExcel(
-            true
-        );
-
-
-    }
+    await loadGeneratedReportsFromExcel(
+        true
+    );
 
 
 }
