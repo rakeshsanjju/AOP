@@ -3249,7 +3249,7 @@
 ===================================================== */
 
 const API_URL =
-    "http://127.0.0.1:3000/api";
+    "https://aop-production-f1ca.up.railway.app/api";
 
 
 const STORAGE_KEY =
@@ -9240,66 +9240,123 @@ function showWarning(
 
 async function checkAuthentication() {
 
-
     try {
-
 
         const response =
             await fetch(
-
                 `${API_URL}/super-admin/dashboard`,
-
                 {
-
                     method:
                         "GET",
 
                     credentials:
-                        "include"
+                        "include",
 
+                    cache:
+                        "no-store"
                 }
-
             );
+
+
+        /*
+         * Redirect only for genuine authentication failures.
+         * Do not redirect for network/CORS/server errors.
+         */
+        if (
+            response.status === 401
+            ||
+            response.status === 403
+        ) {
+
+            window.location.replace(
+                "../login.html"
+            );
+
+            return false;
+        }
+
+
+        let data =
+            {};
+
+        try {
+
+            data =
+                await response.json();
+
+        }
+        catch (
+            jsonError
+        ) {
+
+            console.error(
+                "Authentication response JSON error:",
+                jsonError
+            );
+
+            throw new Error(
+                `Authentication service returned an invalid response (${response.status}).`
+            );
+        }
 
 
         if (
             !response.ok
         ) {
 
-
-            window.location.href =
-                "../login.html";
-
-
-            return false;
-
-
+            throw new Error(
+                data.message
+                ||
+                `Unable to verify login. Server returned ${response.status}.`
+            );
         }
-
-
-        const data =
-            await response.json();
 
 
         if (
             !data.success
         ) {
 
+            const message =
+                String(
+                    data.message
+                    ||
+                    ""
+                )
+                    .toLowerCase();
 
-            window.location.href =
-                "../login.html";
+            if (
+                message.includes(
+                    "unauthorized"
+                )
+                ||
+                message.includes(
+                    "not authenticated"
+                )
+                ||
+                message.includes(
+                    "session expired"
+                )
+            ) {
+
+                window.location.replace(
+                    "../login.html"
+                );
+
+                return false;
+            }
 
 
-            return false;
-
-
+            throw new Error(
+                data.message
+                ||
+                "Unable to verify login."
+            );
         }
 
 
         if (
             data.admin
         ) {
-
 
             document
                 .getElementById(
@@ -9326,19 +9383,15 @@ async function checkAuthentication() {
 
                     "";
 
-
         }
 
 
         return true;
 
-
     }
-
     catch (
         error
     ) {
-
 
         console.error(
             "Authentication error:",
@@ -9346,18 +9399,32 @@ async function checkAuthentication() {
         );
 
 
-        window.location.href =
-            "../login.html";
+        const adminEmail =
+            document.getElementById(
+                "adminEmail"
+            );
+
+        if (
+            adminEmail
+        ) {
+
+            adminEmail.textContent =
+                "Unable to verify session";
+        }
+
+
+        showError(
+            error.message
+            ||
+            "Unable to verify your login session. Please refresh the page."
+        );
 
 
         return false;
 
-
     }
 
-
 }
-
 
 
 /* =====================================================
