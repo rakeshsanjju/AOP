@@ -3823,7 +3823,7 @@
 ===================================================== */
 
 const API_URL =
-    "http://127.0.0.1:3000/api";
+    "https://aop-production-f1ca.up.railway.app/api";
 
 
 const STORAGE_KEY =
@@ -10126,17 +10126,19 @@ async function checkAuthentication() {
 
 
         if (
-            !response.ok
+            response.status === 401 ||
+            response.status === 403
         ) {
-
-
-            window.location.href =
-                "../login.html";
-
-
+            window.location.replace(
+                "../login.html"
+            );
             return false;
+        }
 
-
+        if (!response.ok) {
+            throw new Error(
+                `Authentication check failed with HTTP ${response.status}`
+            );
         }
 
 
@@ -10144,18 +10146,11 @@ async function checkAuthentication() {
             await response.json();
 
 
-        if (
-            !data.success
-        ) {
-
-
-            window.location.href =
-                "../login.html";
-
-
-            return false;
-
-
+        if (!data.success) {
+            throw new Error(
+                data.message ||
+                "Authentication check returned an invalid response"
+            );
         }
 
 
@@ -10209,10 +10204,9 @@ async function checkAuthentication() {
         );
 
 
-        window.location.href =
-            "../login.html";
-
-
+        showError(
+            "Unable to verify your session. Please refresh the page."
+        );
         return false;
 
 
