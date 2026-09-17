@@ -605,7 +605,7 @@
       </section>
     </main>
     <script>
-      const API_URL = "http://127.0.0.1:3000/api";
+      const API_URL = "https://aop-production-f1ca.up.railway.app/api";
       const REPORT_KEY = "HR_APTS";
       const POSITION_ORDER = [
         "telecallers",
@@ -784,9 +784,10 @@
             { method: "GET", credentials: "include", cache: "no-store" },
           );
           const result = await response.json();
-          if (response.status === 401) {
-            location.href = "../login.html";
-            return;
+          if (response.status === 401 || response.status === 403) {
+            throw new Error(
+              "AP & TS HR API returned an authorization error. The page will stay open while the main login session is checked separately."
+            );
           }
           if (!response.ok || !result.success)
             throw new Error(
@@ -896,9 +897,10 @@
             { method: "GET", credentials: "include", cache: "no-store" },
           );
           const result = await response.json();
-          if (response.status === 401) {
-            location.href = "../login.html";
-            return;
+          if (response.status === 401 || response.status === 403) {
+            throw new Error(
+              "AP & TS HR API returned an authorization error. The page will stay open while the main login session is checked separately."
+            );
           }
           if (!response.ok || !result.success)
             throw new Error(
@@ -1083,6 +1085,66 @@
           }
         });
 
+      async function checkAuthentication() {
+        try {
+          const response = await fetch(`${API_URL}/super-admin/dashboard`, {
+            method: "GET",
+            credentials: "include",
+            cache: "no-store",
+          });
+
+          if (response.status === 401 || response.status === 403) {
+            window.location.replace("../login.html");
+            return false;
+          }
+
+          let result = {};
+
+          try {
+            result = await response.json();
+          } catch (jsonError) {
+            console.error("Authentication response JSON error:", jsonError);
+            throw new Error(
+              `Authentication service returned an invalid response (${response.status}).`
+            );
+          }
+
+          if (!response.ok) {
+            throw new Error(
+              result.message ||
+                `Unable to verify login. Server returned ${response.status}.`
+            );
+          }
+
+          if (result.success === false) {
+            const message = String(result.message || "").toLowerCase();
+
+            if (
+              message.includes("unauthorized") ||
+              message.includes("not authenticated") ||
+              message.includes("session expired")
+            ) {
+              window.location.replace("../login.html");
+              return false;
+            }
+
+            throw new Error(result.message || "Unable to verify login.");
+          }
+
+          return true;
+        } catch (error) {
+          console.error("Authentication error:", error);
+
+          showMessage(
+            "errorMessage",
+            error.message ||
+              "Unable to verify your login session. Please refresh the page."
+          );
+
+          return false;
+        }
+      }
+
       refreshButton.addEventListener("click", loadHrData);
       document
         .getElementById("generateReportButton")
@@ -1093,11 +1155,19 @@
       document
         .getElementById("clearHistoryButton")
         .addEventListener("click", clearHistory);
-      (function init() {
+      (async function init() {
         const d = new Date();
         document.getElementById("reportMonth").value =
           `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+
         renderGeneratedReports();
+
+        const authenticated = await checkAuthentication();
+
+        if (!authenticated) {
+          return;
+        }
+
         loadHrData();
         loadGeneratedReports(true);
       })();
