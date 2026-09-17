@@ -764,7 +764,7 @@
       </section>
     </main>
     <script>
-      const API_URL = "http://127.0.0.1:3000/api";
+      const API_URL = "https://aop-production-f1ca.up.railway.app/api";
 
       const PHARMACY_ROUTE = "tn";
       const PHARMACY_REPORT_KEY = "PHARMACY_TN";
@@ -938,9 +938,10 @@
 
           const result = await response.json();
 
-          if (response.status === 401) {
-            location.href = "../login.html";
-            return;
+          if (response.status === 401 || response.status === 403) {
+            throw new Error(
+              "Tamil Nadu Pharmacy API returned an authorization error. The page will stay open while the main login session is checked separately."
+            );
           }
 
           if (!response.ok || !result.success) {
@@ -1117,9 +1118,10 @@
 
           const result = await response.json();
 
-          if (response.status === 401) {
-            location.href = "../login.html";
-            return;
+          if (response.status === 401 || response.status === 403) {
+            throw new Error(
+              "Tamil Nadu Pharmacy API returned an authorization error. The page will stay open while the main login session is checked separately."
+            );
           }
 
           if (!response.ok || !result.success) {
@@ -1361,21 +1363,52 @@
             {
               method: "GET",
               credentials: "include",
+              cache: "no-store",
             },
           );
 
-          if (response.status === 401) {
-            location.href = "../login.html";
-            return;
+          if (response.status === 401 || response.status === 403) {
+            window.location.replace("../login.html");
+            return false;
           }
 
-          const result = await response.json();
+          let result = {};
+
+          try {
+            result = await response.json();
+          } catch (jsonError) {
+            console.error("Admin profile JSON error:", jsonError);
+            throw new Error(
+              `Authentication service returned an invalid response (${response.status}).`
+            );
+          }
+
+          if (!response.ok) {
+            throw new Error(
+              result.message ||
+                `Unable to verify login. Server returned ${response.status}.`
+            );
+          }
 
           if (result && result.admin) {
             setText("adminName", result.admin.name || "Super Admin");
             setText("adminEmail", result.admin.email || "");
           }
-        } catch (e) {}
+
+          return true;
+        } catch (error) {
+          console.error("Admin profile error:", error);
+
+          setText("adminEmail", "Unable to verify session");
+
+          showMessage(
+            "errorMessage",
+            error.message ||
+              "Unable to verify your login session. Please refresh the page."
+          );
+
+          return false;
+        }
       }
 
       document
