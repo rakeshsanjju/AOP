@@ -733,7 +733,7 @@
       </section>
     </main>
     <script>
-      const API_URL = "http://127.0.0.1:3000/api",
+      const API_URL = "https://aop-production-f1ca.up.railway.app/api",
         LAB_ROUTE = "ka",
         LAB_REPORT_KEY = "LAB_KA",
         LAB_SOURCE_KEY = "KA",
@@ -1234,17 +1234,51 @@
           const r = await fetch(`${API_URL}/super-admin/dashboard`, {
             method: "GET",
             credentials: "include",
+            cache: "no-store",
           });
-          if (r.status === 401) {
-            location.href = "../login.html";
-            return;
+
+          if (r.status === 401 || r.status === 403) {
+            window.location.replace("../login.html");
+            return false;
           }
-          const j = await r.json();
+
+          let j = {};
+
+          try {
+            j = await r.json();
+          } catch (jsonError) {
+            console.error("Admin profile JSON error:", jsonError);
+            throw new Error(
+              `Authentication service returned an invalid response (${r.status}).`
+            );
+          }
+
+          if (!r.ok) {
+            throw new Error(
+              j.message ||
+                `Unable to verify login. Server returned ${r.status}.`
+            );
+          }
+
           if (j && j.admin) {
             setText("adminName", j.admin.name || "Super Admin");
             setText("adminEmail", j.admin.email || "");
           }
-        } catch (e) {}
+
+          return true;
+        } catch (e) {
+          console.error("Admin profile error:", e);
+
+          setText("adminEmail", "Unable to verify session");
+
+          showMessage(
+            "errorMessage",
+            e.message ||
+              "Unable to verify your login session. Please refresh the page."
+          );
+
+          return false;
+        }
       }
       document
         .getElementById("logoutButton")
