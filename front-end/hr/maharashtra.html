@@ -618,6 +618,7 @@
         "mbbsDoctor",
         "houseKeeping",
       ];
+      
       let liveData = null;
       let generatedReports = [];
       const refreshButton = document.getElementById("refreshButton");
@@ -688,7 +689,11 @@
           done = 0,
           pending = 0;
         POSITION_ORDER.forEach((key) => {
+          console.log("key : ",key);
+          
           const m = positions[key];
+          console.log(m);
+          
           if (!m) return;
           count++;
           target += num(m.target);
