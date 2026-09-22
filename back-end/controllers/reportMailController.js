@@ -2,7 +2,26 @@
 
 const ExcelJS = require("exceljs");
 const PDFDocument = require("pdfkit");
-const transporter = require("../config/mailConfig");
+const mailConfig = require("../config/mailConfig");
+
+const transporter =
+    mailConfig
+    &&
+    typeof mailConfig.sendMail === "function"
+        ? mailConfig
+        : mailConfig
+          &&
+          mailConfig.transporter
+          &&
+          typeof mailConfig.transporter.sendMail === "function"
+            ? mailConfig.transporter
+            : null;
+
+if (!transporter) {
+    throw new Error(
+        "Invalid mailConfig export: expected a Nodemailer transporter with sendMail()."
+    );
+}
 
 /*
  * ============================================================
