@@ -618,7 +618,6 @@
         "mbbsDoctor",
         "houseKeeping",
       ];
-      
       let liveData = null;
       let generatedReports = [];
       const refreshButton = document.getElementById("refreshButton");
@@ -689,11 +688,7 @@
           done = 0,
           pending = 0;
         POSITION_ORDER.forEach((key) => {
-          console.log("key : ",key);
-          
           const m = positions[key];
-          console.log(m);
-          
           if (!m) return;
           count++;
           target += num(m.target);
@@ -1064,11 +1059,37 @@
                   }),
                 },
               );
-              const result = await response.json();
-              if (!response.ok || !result.success)
-                throw new Error(
-                  result.message || "Unable to send Maharashtra HR report email.",
+              const rawResponse = await response.text();
+
+              let result = {};
+
+              if (rawResponse) {
+                try {
+                  result = JSON.parse(rawResponse);
+                } catch (jsonError) {
+                  result = {
+                    success: false,
+                    message: rawResponse,
+                  };
+                }
+              }
+
+              if (!response.ok || result.success === false) {
+                console.error(
+                  "Maharashtra HR send-email backend error:",
+                  {
+                    status: response.status,
+                    statusText: response.statusText,
+                    response: result,
+                  },
                 );
+
+                throw new Error(
+                  result.message ||
+                    result.error ||
+                    `Maharashtra HR email API returned HTTP ${response.status}.`,
+                );
+              }
               showMessage(
                 "successMessage",
                 result.message ||
