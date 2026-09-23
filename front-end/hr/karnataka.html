@@ -2,421 +2,385 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Karnataka Pharmacy Performance Report</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <title>Karnataka HR Performance Report</title>
     <style>
       * {
+        box-sizing: border-box;
         margin: 0;
         padding: 0;
-        box-sizing: border-box;
-        font-family: Arial, Helvetica, sans-serif;
+      }
+      :root {
+        --bg: #f4f7fb;
+        --card: #fff;
+        --text: #0f172a;
+        --muted: #64748b;
+        --border: #dbe4f0;
+        --primary: #2563eb;
+        --ok: #15803d;
+        --warn: #c2410c;
+        --danger: #b91c1c;
+        --soft: #f8fafc;
       }
       body {
-        background: #f1f5f9;
-        color: #0f172a;
+        font-family:
+          Inter,
+          system-ui,
+          -apple-system,
+          "Segoe UI",
+          sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        min-height: 100vh;
       }
-      .sidebar {
-        position: fixed;
-        left: 0;
-        top: 0;
-        width: 260px;
-        height: 100vh;
-        padding: 30px 20px;
-        background: #0f172a;
-        color: white;
-        display: flex;
-        flex-direction: column;
-        overflow-y: auto;
-        z-index: 1000;
-      }
-      .sidebar-title {
-        margin-bottom: 35px;
-      }
-      .sidebar-title h2 {
-        margin-bottom: 5px;
-        font-size: 22px;
-      }
-      .sidebar-title span {
-        color: #94a3b8;
-        font-size: 12px;
-      }
-      .sidebar-menu {
-        display: flex;
-        flex-direction: column;
-        gap: 7px;
-      }
-      .sidebar-link {
-        width: 100%;
+      header {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 13px 14px;
-        border: none;
-        border-radius: 7px;
-        background: transparent;
-        color: #cbd5e1;
-        text-decoration: none;
-        cursor: pointer;
-        font-size: 14px;
-        text-align: left;
+        gap: 16px;
+        padding: 20px 28px;
+        background: #fff;
+        border-bottom: 1px solid var(--border);
+        position: sticky;
+        top: 0;
+        z-index: 5;
       }
-      .sidebar-link:hover {
-        background: #1e293b;
-        color: white;
+      header h1 {
+        font-size: 24px;
       }
-      .sidebar-link.active {
-        background: #2563eb;
-        color: white;
-      }
-      .dropdown {
-        width: 100%;
-      }
-      .dropdown-arrow {
-        font-size: 10px;
-        transition: transform 0.3s;
-      }
-      .dropdown.open .dropdown-arrow {
-        transform: rotate(180deg);
-      }
-      .submenu {
-        display: none;
-        flex-direction: column;
-        margin-top: 5px;
-        margin-left: 12px;
-        padding-left: 12px;
-        border-left: 1px solid #334155;
-      }
-      .dropdown.open .submenu {
-        display: flex;
-      }
-      .submenu-link {
-        display: block;
-        padding: 10px 12px;
-        margin-bottom: 3px;
-        border-radius: 6px;
-        color: #94a3b8;
-        text-decoration: none;
+      header p {
+        margin-top: 4px;
+        color: var(--muted);
         font-size: 13px;
       }
-      .submenu-link:hover {
-        padding-left: 16px;
-        background: #1e293b;
-        color: white;
-      }
-      .submenu-link.active {
-        background: #334155;
-        color: white;
-        font-weight: 600;
-      }
-      #logoutButton {
-        width: 100%;
-        min-height: 43px;
-        margin-top: auto;
-        border: none;
-        border-radius: 7px;
-        background: #dc2626;
-        color: white;
-        cursor: pointer;
-        font-weight: 600;
+      .back {
+        padding: 10px 14px;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        color: var(--text);
+        text-decoration: none;
+        font-weight: 700;
+        background: #fff;
       }
       main {
-        margin-left: 260px;
-        min-height: 100vh;
-        padding: 35px;
+        width: min(1500px, calc(100% - 40px));
+        margin: 26px auto 50px;
       }
-      .page-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 30px;
+      .panel,
+      .sum-card,
+      .position-card,
+      .summary-report,
+      .report-actions {
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        box-shadow: 0 10px 28px rgba(15, 23, 42, 0.07);
       }
-      .page-header h1 {
+      .controls {
+        display: grid;
+        grid-template-columns: minmax(220px, 1fr) minmax(220px, 300px) auto;
+        gap: 14px;
+        align-items: end;
+        padding: 20px;
+      }
+      label {
+        display: block;
         margin-bottom: 7px;
-        font-size: 28px;
+        font-size: 13px;
+        font-weight: 800;
+        color: #334155;
       }
-      .page-header p {
-        color: #64748b;
-        font-size: 14px;
+      .fixed-source,
+      input[type="month"] {
+        width: 100%;
+        min-height: 46px;
+        padding: 0 14px;
+        border: 1px solid #cbd5e1;
+        border-radius: 10px;
+        background: #fff;
+        color: var(--text);
+        font: inherit;
       }
-      .admin-profile {
+      .fixed-source {
         display: flex;
         align-items: center;
-        gap: 12px;
+        background: #f8fafc;
+        font-weight: 800;
+        color: #1e3a8a;
       }
-      .admin-avatar {
-        width: 44px;
-        height: 44px;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        border-radius: 50%;
-        background: #2563eb;
-        color: white;
-        font-weight: bold;
+      button {
+        font: inherit;
+        min-height: 46px;
+        padding: 0 18px;
+        border: 0;
+        border-radius: 10px;
+        background: var(--primary);
+        color: #fff;
+        font-weight: 800;
+        cursor: pointer;
       }
-      .admin-details {
-        display: flex;
-        flex-direction: column;
+      button:hover {
+        filter: brightness(0.96);
       }
-      #adminName {
-        font-size: 14px;
+      button:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
       }
-      #adminEmail {
-        margin-top: 4px;
-        color: #64748b;
-        font-size: 12px;
+      .secondary {
+        background: #0f172a;
       }
-      .section-card {
-        margin-bottom: 25px;
-        padding: 28px;
-        border-radius: 12px;
-        background: white;
-        box-shadow: 0 4px 15px rgba(15, 23, 42, 0.05);
+      .danger-btn {
+        background: #dc2626;
       }
-      .report-title h2 {
-        margin-bottom: 8px;
-        font-size: 22px;
+      .light-btn {
+        background: #dbeafe;
+        color: #1d4ed8;
       }
-      .report-title p {
-        color: #64748b;
-        font-size: 14px;
-        line-height: 1.6;
-      }
-      .source-note {
+      .note,
+      .msg {
         margin-top: 14px;
         padding: 12px 14px;
-        border-radius: 8px;
+        border-radius: 10px;
+        font-size: 13px;
+      }
+      .note {
         background: #eff6ff;
         color: #1e40af;
-        font-size: 12px;
       }
-      .control-row {
-        display: grid;
-        grid-template-columns: minmax(220px, 300px) 1fr;
-        gap: 20px;
-        align-items: end;
-        margin-top: 22px;
-      }
-      .form-group label {
-        display: block;
-        margin-bottom: 8px;
-        color: #475569;
-        font-size: 13px;
-        font-weight: 600;
-      }
-      .form-group input {
-        width: 100%;
-        height: 43px;
-        padding: 0 12px;
-        border: 1px solid #cbd5e1;
-        border-radius: 7px;
-      }
-      .live-button,
-      .generate-button {
-        min-height: 43px;
-        padding: 0 20px;
-        border: none;
-        border-radius: 7px;
-        color: white;
-        cursor: pointer;
-        font-size: 13px;
-        font-weight: 700;
-      }
-      .live-button {
-        background: #2563eb;
-      }
-      .generate-button {
-        min-height: 48px;
-        padding: 0 28px;
-        background: #0f172a;
-        font-size: 15px;
-      }
-      .live-source {
-        margin-top: 16px;
-        padding: 11px 13px;
-        border-radius: 7px;
-        background: #f8fafc;
-        color: #475569;
-        font-size: 12px;
-      }
-      .message {
+      .msg {
         display: none;
-        margin-top: 15px;
-        padding: 12px 14px;
-        border-radius: 7px;
-        font-size: 13px;
       }
-      .message.show {
+      .msg.show {
         display: block;
       }
-      .message.processing {
-        background: #fef3c7;
-        color: #92400e;
+      .processing {
+        background: #f1f5f9;
+        color: #475569;
       }
-      .message.success {
+      .success {
         background: #dcfce7;
-        color: #15803d;
+        color: var(--ok);
       }
-      .message.error {
+      .error {
         background: #fee2e2;
-        color: #b91c1c;
+        color: var(--danger);
       }
-      .metrics-grid {
+      .summary {
         display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 20px;
-        margin-bottom: 25px;
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+        gap: 14px;
+        margin-top: 20px;
       }
-      .metric-card {
-        padding: 22px;
-        border-radius: 12px;
-        background: white;
-        box-shadow: 0 4px 15px rgba(15, 23, 42, 0.05);
+      .sum-card {
+        padding: 18px;
       }
-      .metric-title {
-        margin-bottom: 18px;
-        font-size: 16px;
+      .sum-card span {
+        font-size: 12px;
         font-weight: 700;
+        color: var(--muted);
       }
-      .metric-values {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
+      .sum-card strong {
+        display: block;
+        margin-top: 8px;
+        font-size: 27px;
+      }
+      .section-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: end;
         gap: 12px;
+        margin: 28px 2px 14px;
       }
-      .metric-box {
-        padding: 12px;
-        border-radius: 8px;
-        background: #f8fafc;
+      .section-head h2 {
+        font-size: 22px;
       }
-      .metric-box.full {
-        grid-column: 1/-1;
+      .section-head p {
+        margin-top: 4px;
+        font-size: 13px;
+        color: var(--muted);
       }
-      .metric-box.need {
-        background: #fff7ed;
+      .badge {
+        padding: 6px 9px;
+        border-radius: 999px;
+        background: #e0e7ff;
+        color: #3730a3;
+        font-size: 12px;
+        font-weight: 800;
       }
-      .metric-box span {
-        display: block;
-        margin-bottom: 6px;
-        color: #64748b;
-        font-size: 11px;
-        font-weight: 600;
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 18px;
       }
-      .metric-box strong {
-        display: block;
-        font-size: 19px;
-        line-height: 1.25;
-        word-break: break-word;
+      .position-card {
+        padding: 20px;
+        position: relative;
+        overflow: hidden;
       }
-      .metric-box.need strong {
-        color: #c2410c;
+      .position-card:before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 4px;
+        background: var(--primary);
       }
-      .metric-result {
-        margin-top: 14px;
+      .card-head {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        align-items: flex-start;
+      }
+      .card-head h3 {
+        font-size: 18px;
       }
       .status {
-        display: inline-flex;
-        padding: 7px 10px;
-        border-radius: 20px;
+        padding: 6px 9px;
+        border-radius: 999px;
         font-size: 11px;
+        font-weight: 900;
+        white-space: nowrap;
+      }
+      .status.ok {
+        background: #dcfce7;
+        color: var(--ok);
+      }
+      .status.pending {
+        background: #ffedd5;
+        color: var(--warn);
+      }
+      .status.missing {
+        background: #f1f5f9;
+        color: #64748b;
+      }
+      .metrics {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 10px;
+        margin-top: 18px;
+      }
+      .metric {
+        padding: 13px 11px;
+        background: #f8fafc;
+        border-radius: 12px;
+      }
+      .metric.need {
+        background: #fff7ed;
+      }
+      .metric span {
+        display: block;
+        color: var(--muted);
+        font-size: 11px;
+        font-weight: 800;
+      }
+      .metric strong {
+        display: block;
+        margin-top: 6px;
+        font-size: 23px;
+      }
+      .metric.need strong {
+        color: var(--warn);
+      }
+      .progress-row {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 16px;
+        font-size: 12px;
+        color: var(--muted);
         font-weight: 700;
       }
-      .status-success {
-        background: #dcfce7;
-        color: #15803d;
+      .track {
+        height: 9px;
+        background: #e2e8f0;
+        border-radius: 999px;
+        overflow: hidden;
+        margin-top: 7px;
       }
-      .status-failed {
-        background: #fee2e2;
-        color: #b91c1c;
+      .bar {
+        height: 100%;
+        background: var(--primary);
+        border-radius: 999px;
       }
-      .status-missing {
-        background: #fff7ed;
-        color: #c2410c;
+      .summary-report {
+        margin-top: 26px;
+        padding: 22px;
       }
-      .table-title {
+      .summary-report h2,
+      .report-actions h2 {
+        font-size: 20px;
+        margin-bottom: 6px;
+      }
+      .summary-report .sub,
+      .report-actions .sub {
+        color: var(--muted);
+        font-size: 13px;
         margin-bottom: 18px;
-        font-size: 19px;
       }
-      .table-wrapper,
-      .report-table-wrapper {
-        width: 100%;
+      .table-wrap {
         overflow-x: auto;
-        border: 1px solid #e2e8f0;
+        border: 1px solid var(--border);
         border-radius: 10px;
       }
       table {
         width: 100%;
         border-collapse: collapse;
+        min-width: 900px;
       }
       th,
       td {
-        padding: 13px 12px;
+        padding: 12px;
         border-bottom: 1px solid #e2e8f0;
-        font-size: 12px;
         text-align: left;
-        white-space: nowrap;
+        font-size: 12px;
       }
       th {
         background: #f8fafc;
         color: #475569;
       }
-      .performance-table {
-        min-width: 780px;
+      tbody tr:hover {
+        background: #f8fafc;
       }
-      .generated-reports {
-        margin-top: 28px;
+      .num {
+        text-align: right;
       }
-      .generated-reports-header {
+      .status-cell span {
+        display: inline-flex;
+      }
+      .report-actions {
+        margin-top: 26px;
+        padding: 22px;
+      }
+      .action-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
+      }
+      .history-head {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        gap: 15px;
-        margin-bottom: 15px;
+        gap: 14px;
+        margin: 26px 0 12px;
       }
-      .generated-actions {
+      .history-head h3 {
+        font-size: 18px;
+      }
+      .history-actions {
         display: flex;
-        flex-wrap: wrap;
+        gap: 8px;
         align-items: center;
-        gap: 10px;
+        flex-wrap: wrap;
       }
-      .refresh-history-button,
-      .clear-history-button {
-        min-height: 34px;
-        padding: 0 12px;
-        border: none;
-        border-radius: 6px;
-        cursor: pointer;
-        font-size: 11px;
-        font-weight: 700;
-      }
-      .refresh-history-button {
-        background: #dbeafe;
-        color: #1d4ed8;
-      }
-      .clear-history-button {
-        background: #fee2e2;
-        color: #b91c1c;
-      }
-      .report-table {
-        min-width: 1320px;
-      }
-      .report-table th,
-      .report-table td {
-        white-space: normal;
-        vertical-align: middle;
-      }
-      .history-summary {
-        min-width: 380px;
-        line-height: 1.45;
+      .history-table {
+        min-width: 1250px;
       }
       .table-button {
-        min-width: 95px;
-        min-height: 40px;
-        padding: 7px 11px;
-        border: none;
+        min-height: 36px;
+        padding: 6px 10px;
         border-radius: 7px;
-        cursor: pointer;
         font-size: 11px;
-        font-weight: 700;
       }
       .view-pdf {
         background: #fee2e2;
@@ -439,375 +403,225 @@
         color: #92400e;
       }
       .history-empty {
-        padding: 30px !important;
-        text-align: center !important;
-        color: #94a3b8;
+        text-align: center;
+        color: var(--muted);
+        padding: 22px;
       }
-      @media (max-width: 1100px) {
-        .metrics-grid {
-          grid-template-columns: repeat(2, 1fr);
+      .history-summary {
+        min-width: 340px;
+        white-space: normal;
+        line-height: 1.5;
+      }
+      .empty {
+        display: none;
+        padding: 30px;
+        text-align: center;
+        background: #fff;
+        border: 1px dashed #cbd5e1;
+        border-radius: 16px;
+        color: var(--muted);
+      }
+      .empty.show {
+        display: block;
+      }
+      @media (max-width: 1200px) {
+        .summary {
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+        .grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
         }
       }
-      @media (max-width: 800px) {
-        .sidebar {
-          width: 210px;
+      @media (max-width: 760px) {
+        header {
+          align-items: flex-start;
+          flex-direction: column;
+          padding: 16px;
         }
         main {
-          margin-left: 210px;
-          padding: 20px;
+          width: calc(100% - 24px);
+          margin-top: 16px;
         }
-        .metrics-grid,
-        .control-row {
+        .controls,
+        .grid,
+        .summary,
+        .metrics {
           grid-template-columns: 1fr;
         }
-        .page-header,
-        .generated-reports-header {
+        .action-row,
+        .history-head {
+          align-items: stretch;
           flex-direction: column;
-          align-items: flex-start;
-          gap: 20px;
+        }
+        .action-row button {
+          width: 100%;
         }
       }
     </style>
   </head>
   <body>
-    <aside class="sidebar">
-      <div class="sidebar-title">
-        <h2>Admin Panel</h2>
-        <span>Super Admin</span>
-      </div>
-      <div class="sidebar-menu">
-        <a href="../pan-india.html" class="sidebar-link"
-          ><span>Pan India Report</span></a
-        >
-        <div class="dropdown" id="ipDropdown">
-          <button type="button" class="sidebar-link" id="ipDropdownButton">
-            <span>IP Reports</span><span class="dropdown-arrow">▼</span>
-          </button>
-          <div class="submenu">
-            <a href="../ip/ap&amp;ts.html" class="submenu-link"
-              >Andhra Pradesh</a
-            ><a href="../ip/ap&amp;ts.html" class="submenu-link">Telangana</a
-            ><a href="../ip/karnataka.html" class="submenu-link">Karnataka</a
-            ><a href="../ip/tamil-nadu.html" class="submenu-link">Tamil Nadu</a
-            ><a href="../ip/west-bengal.html" class="submenu-link"
-              >West Bengal</a
-            ><a href="../ip/maharashtra.html" class="submenu-link"
-              >Maharashtra</a
-            >
-          </div>
-        </div>
-        <div class="dropdown" id="opDropdown">
-          <button type="button" class="sidebar-link" id="opDropdownButton">
-            <span>OP Reports</span><span class="dropdown-arrow">▼</span>
-          </button>
-          <div class="submenu">
-            <a href="../op/ap&amp;ts.html" class="submenu-link"
-              >Andhra Pradesh</a
-            ><a href="../op/ap&amp;ts.html" class="submenu-link">Telangana</a
-            ><a href="../op/karnataka.html" class="submenu-link">Karnataka</a
-            ><a href="../op/tamil-nadu.html" class="submenu-link">Tamil Nadu</a
-            ><a href="../op/west-bengal.html" class="submenu-link"
-              >West Bengal</a
-            ><a href="../op/maharashtra.html" class="submenu-link"
-              >Maharashtra</a
-            ><a href="../op/delhi.html" class="submenu-link">Delhi</a>
-          </div>
-        </div>
-        <div class="dropdown" id="googleFbDropdown">
-          <button
-            type="button"
-            class="sidebar-link"
-            id="googleFbDropdownButton"
-          >
-            <span>Google &amp; FB Reports</span
-            ><span class="dropdown-arrow">▼</span>
-          </button>
-          <div class="submenu">
-            <a href="../google&amp;fb/ap&amp;ts.html" class="submenu-link"
-              >AP &amp; TS</a
-            ><a href="../google&amp;fb/karnataka.html" class="submenu-link"
-              >Karnataka</a
-            ><a href="../google&amp;fb/tamil-nadu.html" class="submenu-link"
-              >Tamil Nadu</a
-            ><a href="../google&amp;fb/west-bengal.html" class="submenu-link"
-              >West Bengal</a
-            ><a href="../google&amp;fb/maharashtra.html" class="submenu-link"
-              >Maharashtra</a
-            ><a href="../google&amp;fb/delhi.html" class="submenu-link"
-              >Delhi</a
-            >
-          </div>
-        </div>
-        <div class="dropdown" id="labDropdown">
-          <button
-            type="button"
-            class="sidebar-link"
-            id="labDropdownButton"
-          >
-            <span>Lab Reports</span><span class="dropdown-arrow">▼</span>
-          </button>
-          <div class="submenu">
-            <a href="../lab/ap%26ts.html" class="submenu-link">AP & TS</a
-            ><a href="../lab/karnataka.html" class="submenu-link">Karnataka</a
-            ><a href="../lab/tamil-nadu.html" class="submenu-link">Tamil Nadu</a
-            ><a href="../lab/west-bengal.html" class="submenu-link">West Bengal</a
-            ><a href="../lab/maharashtra.html" class="submenu-link">Maharashtra</a>
-          </div>
-        </div>
-        <div class="dropdown open" id="pharmacyDropdown">
-          <button
-            type="button"
-            class="sidebar-link active"
-            id="pharmacyDropdownButton"
-          >
-            <span>Pharmacy Reports</span>
-            <span class="dropdown-arrow">▼</span>
-          </button>
-
-          <div class="submenu">
-            <a href="./ap%26ts.html" class="submenu-link"
-              >AP &amp; TS</a
-            >
-            <a href="./karnataka.html" class="submenu-link active"
-              >Karnataka</a
-            >
-            <a href="./tamil-nadu.html" class="submenu-link"
-              >Tamil Nadu</a
-            >
-            <a href="./west-bengal.html" class="submenu-link"
-              >West Bengal</a
-            >
-            <a href="./maharashtra.html" class="submenu-link"
-              >Maharashtra</a
-            >
-          </div>
-        </div>
-      </div>
-      <button id="logoutButton">Logout</button>
-    </aside>
-    <main>
-      <header class="page-header">
-        <div>
-          <h1>Karnataka Pharmacy Performance Report</h1>
-          <p>Pharmacy Bill Count, Pharmacy Revenue and Per Bill Revenue Performance</p>
-        </div>
-        <div class="admin-profile">
-          <div class="admin-avatar">SA</div>
-          <div class="admin-details">
-            <strong id="adminName">Super Admin</strong
-            ><span id="adminEmail">Loading...</span>
-          </div>
-        </div>
-      </header>
-      <section class="section-card report-title">
-        <h2>Pharmacy Dashboard</h2>
+    <header>
+      <div>
+        <h1>Karnataka HR Performance Report</h1>
         <p>
-          This dashboard reads <strong>Karnataka Pharmacy data only</strong>. It shows
-          Pharmacy Bill Count Target, Received and Unreceived; Pharmacy Revenue Target,
-          Achieved and Need to Achieve; Pharmacy Per Bill Revenue Target and Generated;
-          and Discount Given Per Bill Revenue.
+          Karnataka position-wise manpower target, achieved, have-to-achieve, summary and
+          generated reports
         </p>
-        <div class="source-note">
-          <strong>Live source:</strong> Karnataka column from Input → Sheet1.
+      </div>
+      <a class="back" href="../super-Admin.html">← Super Admin</a>
+    </header>
+    <main>
+      <section class="panel controls">
+        <div>
+          <label>HR Data Source</label>
+          <div class="fixed-source">Karnataka Only</div>
         </div>
-        <div class="control-row">
-          <div class="form-group">
-            <label for="reportMonth">Report Month</label
-            ><input type="month" id="reportMonth" />
-          </div>
-          <div>
-            <button
-              type="button"
-              class="live-button"
-              id="refreshLiveDataButton"
-            >
-              Refresh Live Data
+        <div>
+          <label for="reportMonth">Report Month</label>
+          <input id="reportMonth" type="month" />
+        </div>
+        <button id="refreshButton" type="button">
+          Refresh Karnataka HR Data
+        </button>
+      </section>
+
+      <div id="sourceNote" class="note">
+        Live source: Karnataka column from Input → Sheet1.
+      </div>
+      <div id="processingMessage" class="msg processing"></div>
+      <div id="successMessage" class="msg success"></div>
+      <div id="errorMessage" class="msg error"></div>
+
+      <section class="summary">
+        <div class="sum-card">
+          <span>Total Positions</span><strong id="totalPositions">9</strong>
+        </div>
+        <div class="sum-card">
+          <span>Total Target</span><strong id="totalTarget">0</strong>
+        </div>
+        <div class="sum-card">
+          <span>Total Achieved</span><strong id="totalAchieved">0</strong>
+        </div>
+        <div class="sum-card">
+          <span>Total Have To Achieve</span
+          ><strong id="totalRemaining">0</strong>
+        </div>
+        <div class="sum-card">
+          <span>Positions Achieved</span
+          ><strong id="positionsAchieved">0</strong>
+        </div>
+        <div class="sum-card">
+          <span>Hiring Pending</span><strong id="positionsPending">0</strong>
+        </div>
+      </section>
+
+      <div class="section-head">
+        <div>
+          <h2>Position-wise HR Status</h2>
+          <p>Each card reads only the Karnataka column from the live Input sheet.</p>
+        </div>
+        <span id="positionCount" class="badge">9 Positions</span>
+      </div>
+      <section id="cardsGrid" class="grid"></section>
+      <div id="emptyState" class="empty">
+        No Karnataka HR position data is available.
+      </div>
+
+      <section class="summary-report">
+        <h2>Karnataka HR Summary Report</h2>
+        <p class="sub">
+          Complete position-wise summary used in the generated PDF and Excel
+          report.
+        </p>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Position</th>
+                <th class="num">Target</th>
+                <th class="num">Achieved</th>
+                <th class="num">Have To Achieve</th>
+                <th class="num">Achievement %</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="summaryBody">
+              <tr>
+                <td colspan="6">Refresh live data to load the HR summary.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="report-actions">
+        <h2>Generate Karnataka HR Report</h2>
+        <p class="sub">
+          Generate PDF + Excel, save them to Google Drive and add the report to
+          the HR_KA history sheet.
+        </p>
+        <div class="action-row">
+          <button id="generateReportButton" class="secondary" type="button">
+            Generate Report
+          </button>
+        </div>
+
+        <div class="history-head">
+          <div><h3>Generated Reports History (HR_KA Sheet)</h3></div>
+          <div class="history-actions">
+            <span id="reportCount">0 Reports</span>
+            <button id="refreshHistoryButton" class="light-btn" type="button">
+              Refresh History
+            </button>
+            <button id="clearHistoryButton" class="danger-btn" type="button">
+              Clear History
             </button>
           </div>
         </div>
-        <div class="live-source" id="liveSourceInfo">
-          Waiting for Karnataka Pharmacy live data...
-        </div>
-        <div class="message processing" id="processingMessage"></div>
-        <div class="message success" id="successMessage"></div>
-        <div class="message error" id="errorMessage"></div>
-      </section>
-      <section class="metrics-grid">
-        <div class="metric-card">
-          <div class="metric-title">Pharmacy Bill Count</div>
-          <div class="metric-values">
-            <div class="metric-box">
-              <span>Pharmacy Bill Count Target</span>
-              <strong id="pharmacyCountTargetDisplay">N/A</strong>
-            </div>
-            <div class="metric-box">
-              <span>Pharmacy Bill Count Received</span>
-              <strong id="pharmacyCountAchievedDisplay">N/A</strong>
-            </div>
-            <div class="metric-box full need">
-              <span>Pharmacy Bill Count Unreceived</span>
-              <strong id="pharmacyCountUnreceivedDisplay">N/A</strong>
-            </div>
-          </div>
-          <div class="metric-result" id="pharmacyCountResult"></div>
-        </div>
 
-        <div class="metric-card">
-          <div class="metric-title">Pharmacy Revenue</div>
-          <div class="metric-values">
-            <div class="metric-box">
-              <span>Pharmacy Revenue Target</span>
-              <strong id="pharmacyRevenueTargetDisplay">N/A</strong>
-            </div>
-            <div class="metric-box">
-              <span>Pharmacy Revenue Achieved</span>
-              <strong id="pharmacyRevenueAchievedDisplay">N/A</strong>
-            </div>
-            <div class="metric-box full need">
-              <span>Pharmacy Revenue Need to Achieve</span>
-              <strong id="pharmacyRevenueNeedDisplay">N/A</strong>
-            </div>
-          </div>
-          <div class="metric-result" id="pharmacyRevenueResult"></div>
-        </div>
-
-        <div class="metric-card">
-          <div class="metric-title">Per Pharmacy Bill Revenue</div>
-          <div class="metric-values">
-            <div class="metric-box full">
-              <span>Pharmacy Per Bill Revenue Target</span>
-              <strong id="pharmacyPerBillTargetDisplay">N/A</strong>
-            </div>
-            <div class="metric-box full">
-              <span>Pharmacy Per Bill Revenue Generated</span>
-              <strong id="pharmacyPerBillGeneratedDisplay">N/A</strong>
-            </div>
-            <div class="metric-box full need">
-              <span>Discount Given Per Bill Revenue</span>
-              <strong id="pharmacyDiscountPerBillDisplay">N/A</strong>
-            </div>
-          </div>
-        </div>
-      </section>
-      <section class="section-card">
-        <h2 class="table-title">Karnataka Pharmacy Performance Summary</h2>
-        <div class="table-wrapper">
-          <table class="performance-table">
+        <div class="table-wrap">
+          <table class="history-table">
             <thead>
               <tr>
-                <th>Particular</th>
-                <th>Target</th>
-                <th>Achieved / Value</th>
-                <th>Result</th>
+                <th>Date &amp; Time</th>
+                <th>Report Month</th>
+                <th>Summary</th>
+                <th>View PDF</th>
+                <th>View Excel</th>
+                <th>Download PDF</th>
+                <th>Download Excel</th>
+                <th>Send Email (2)</th>
               </tr>
             </thead>
-            <tbody id="performanceSummaryBody">
+            <tbody id="generatedReportsBody">
               <tr>
-                <td colspan="4">
-                  Refresh live data to load Karnataka Pharmacy values.
+                <td colspan="8" class="history-empty">
+                  Loading report history...
                 </td>
               </tr>
             </tbody>
           </table>
         </div>
       </section>
-      <section class="section-card">
-        <button type="button" class="generate-button" id="generateReportButton">
-          Generate Report
-        </button>
-        <div class="generated-reports">
-          <div class="generated-reports-header">
-            <h2 class="table-title">
-              Generated Reports History (PHARMACY_KA Sheet)
-            </h2>
-            <div class="generated-actions">
-              <span id="reportCount">0 Reports</span
-              ><button
-                type="button"
-                class="refresh-history-button"
-                id="refreshHistoryButton"
-              >
-                Refresh History</button
-              ><button
-                type="button"
-                class="clear-history-button"
-                id="clearHistoryButton"
-              >
-                Clear History
-              </button>
-            </div>
-          </div>
-          <div class="report-table-wrapper">
-            <table class="report-table">
-              <thead>
-                <tr>
-                  <th>Date &amp; Time</th>
-                  <th>Report Month</th>
-                  <th>Summary</th>
-                  <th>View PDF</th>
-                  <th>View Excel</th>
-                  <th>Download PDF</th>
-                  <th>Download Excel</th>
-                  <th>Send Email (2)</th>
-                </tr>
-              </thead>
-              <tbody id="generatedReportsBody">
-                <tr>
-                  <td colspan="8" class="history-empty">
-                    Loading Pharmacy report history...
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </section>
     </main>
     <script>
-      const API_URL = "https://aop-production-f1ca.up.railway.app/api";
-
-      const PHARMACY_ROUTE = "ka";
-      const PHARMACY_REPORT_KEY = "PHARMACY_KA";
-      const PHARMACY_SOURCE_KEY = "KA";
-      const PHARMACY_SOURCE_LABEL = "Karnataka";
-      const PHARMACY_STATE_NAME = "Karnataka";
-      const STORAGE_KEY = "pharmacy_ka_performance_reports_v1";
-
+      const API_URL = "http://127.0.0.1:3000/api";
+      const REPORT_KEY = "HR_KA";
+      const POSITION_ORDER = [
+        "telecallers",
+        "telesales",
+        "surgeons",
+        "counsellors",
+        "fieldRepresentative",
+        "frontOffice",
+        "pharmacist",
+        "mbbsDoctor",
+        "houseKeeping",
+      ];
       let liveData = null;
       let generatedReports = [];
-
-      const ipDropdown = document.getElementById("ipDropdown"),
-        opDropdown = document.getElementById("opDropdown"),
-        googleFbDropdown = document.getElementById("googleFbDropdown"),
-        labDropdown = document.getElementById("labDropdown"),
-        pharmacyDropdown = document.getElementById("pharmacyDropdown"),
-        sidebarDropdowns = [
-          ipDropdown,
-          opDropdown,
-          googleFbDropdown,
-          labDropdown,
-          pharmacyDropdown,
-        ].filter(Boolean);
-
-      function toggleDropdown(d) {
-        if (!d) return;
-        const open = !d.classList.contains("open");
-        sidebarDropdowns.forEach((x) => x.classList.remove("open"));
-        if (open) d.classList.add("open");
-      }
-
-      [
-        ["ipDropdownButton", ipDropdown],
-        ["opDropdownButton", opDropdown],
-        ["googleFbDropdownButton", googleFbDropdown],
-        ["labDropdownButton", labDropdown],
-        ["pharmacyDropdownButton", pharmacyDropdown],
-      ].forEach(([id, d]) => {
-        const b = document.getElementById(id);
-        if (b) b.addEventListener("click", () => toggleDropdown(d));
-      });
-
-      if (pharmacyDropdown) pharmacyDropdown.classList.add("open");
+      const refreshButton = document.getElementById("refreshButton");
+      const cardsGrid = document.getElementById("cardsGrid");
 
       function validNumber(v) {
         return (
@@ -817,202 +631,196 @@
           Number.isFinite(Number(v))
         );
       }
-
-      function formatNumber(v) {
+      function num(v) {
+        return validNumber(v) ? Number(v) : 0;
+      }
+      function fmt(v) {
         return validNumber(v)
-          ? new Intl.NumberFormat("en-IN", {
-              maximumFractionDigits: 2,
-            }).format(Number(v))
+          ? new Intl.NumberFormat("en-IN", { maximumFractionDigits: 2 }).format(
+              Number(v),
+            )
           : "N/A";
       }
-
-      function formatCurrency(v) {
-        return validNumber(v)
-          ? new Intl.NumberFormat("en-IN", {
-              style: "currency",
-              currency: "INR",
-              maximumFractionDigits: 0,
-            }).format(Number(v))
-          : "N/A";
+      function esc(v) {
+        return String(v ?? "")
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#039;");
       }
-
-      function statusHTML(t, a) {
-        if (!validNumber(t) || !validNumber(a)) {
-          return '<span class="status status-missing">Data Missing</span>';
-        }
-
-        return Number(a) >= Number(t)
-          ? '<span class="status status-success">↑ Target Achieved</span>'
-          : '<span class="status status-failed">↓ Target Not Achieved</span>';
-      }
-
-      function calculatedStatusHTML(v) {
-        return validNumber(v)
-          ? '<span class="status status-success">Calculated</span>'
-          : '<span class="status status-missing">Data Missing</span>';
-      }
-
-      function setText(id, value) {
-        const element = document.getElementById(id);
-        if (element) element.textContent = value;
-      }
-
-      function clearMessages() {
-        ["processingMessage", "successMessage", "errorMessage"].forEach((id) => {
-          const element = document.getElementById(id);
-          element.classList.remove("show");
-          element.textContent = "";
-        });
-      }
-
       function showMessage(id, text) {
-        clearMessages();
-        const element = document.getElementById(id);
-        element.textContent = text;
-        element.classList.add("show");
-      }
-
-      function renderCards(data) {
-        const count = data.pharmacyCount || {};
-        const revenue = data.pharmacyRevenue || {};
-        const perBill = data.pharmacyPerBillRevenue || {};
-
-        setText("pharmacyCountTargetDisplay", formatNumber(count.target));
-        setText("pharmacyCountAchievedDisplay", formatNumber(count.achieved));
-        setText("pharmacyCountUnreceivedDisplay", formatNumber(count.unreceived));
-
-        setText("pharmacyRevenueTargetDisplay", formatCurrency(revenue.target));
-        setText("pharmacyRevenueAchievedDisplay", formatCurrency(revenue.achieved));
-        setText("pharmacyRevenueNeedDisplay", formatCurrency(revenue.needToAchieve));
-
-        setText("pharmacyPerBillTargetDisplay", formatCurrency(perBill.target));
-        setText("pharmacyPerBillGeneratedDisplay", formatCurrency(perBill.generated));
-        setText("pharmacyDiscountPerBillDisplay", formatCurrency(perBill.discount));
-
-        document.getElementById("pharmacyCountResult").innerHTML =
-          statusHTML(count.target, count.achieved);
-
-        document.getElementById("pharmacyRevenueResult").innerHTML =
-          statusHTML(revenue.target, revenue.achieved);
-      }
-
-      function renderPerformanceSummary(data) {
-        const count = data.pharmacyCount || {};
-        const revenue = data.pharmacyRevenue || {};
-        const perBill = data.pharmacyPerBillRevenue || {};
-
-        document.getElementById("performanceSummaryBody").innerHTML = `
-          <tr><td>Pharmacy Bill Count</td><td>${formatNumber(count.target)}</td><td>${formatNumber(count.achieved)}</td><td>${statusHTML(count.target, count.achieved)}</td></tr>
-          <tr><td>Pharmacy Bill Count Unreceived</td><td>N/A</td><td>${formatNumber(count.unreceived)}</td><td>${calculatedStatusHTML(count.unreceived)}</td></tr>
-          <tr><td>Pharmacy Revenue</td><td>${formatCurrency(revenue.target)}</td><td>${formatCurrency(revenue.achieved)}</td><td>${statusHTML(revenue.target, revenue.achieved)}</td></tr>
-          <tr><td>Pharmacy Revenue Need to Achieve</td><td>N/A</td><td>${formatCurrency(revenue.needToAchieve)}</td><td>${calculatedStatusHTML(revenue.needToAchieve)}</td></tr>
-          <tr><td>Pharmacy Per Bill Revenue Target</td><td>N/A</td><td>${formatCurrency(perBill.target)}</td><td>${calculatedStatusHTML(perBill.target)}</td></tr>
-          <tr><td>Pharmacy Per Bill Revenue Generated</td><td>N/A</td><td>${formatCurrency(perBill.generated)}</td><td>${calculatedStatusHTML(perBill.generated)}</td></tr>
-          <tr><td>Discount Given Per Bill Revenue</td><td>N/A</td><td>${formatCurrency(perBill.discount)}</td><td>${calculatedStatusHTML(perBill.discount)}</td></tr>
-        `;
-      }
-
-      async function refreshLiveData() {
-        clearMessages();
-
-        const button = document.getElementById("refreshLiveDataButton");
-        const originalText = button.textContent;
-
-        button.disabled = true;
-        button.textContent = "Loading...";
-
-        showMessage(
-          "processingMessage",
-          `Reading ${PHARMACY_STATE_NAME} Pharmacy data...`,
-        );
-
-        try {
-          const response = await fetch(
-            `${API_URL}/reports/pharmacy/${PHARMACY_ROUTE}/live-input`,
-            {
-              method: "GET",
-              credentials: "include",
-              cache: "no-store",
-            },
-          );
-
-          const result = await response.json();
-
-          if (response.status === 401 || response.status === 403) {
-            throw new Error(
-              "Karnataka Pharmacy API returned an authorization error. The page will stay open while the main login session is checked separately."
-            );
-          }
-
-          if (!response.ok || !result.success) {
-            throw new Error(
-              result.message ||
-                `Unable to load Pharmacy data. Server returned ${response.status}.`,
-            );
-          }
-
-          liveData = result;
-
-          renderCards(result.totals || {});
-          renderPerformanceSummary(result.totals || {});
-
-          setText(
-            "liveSourceInfo",
-            "Loaded live source: " +
-              (result.sourceColumn || PHARMACY_SOURCE_LABEL) +
-              " only.",
-          );
-
-          showMessage(
-            "successMessage",
-            `${PHARMACY_STATE_NAME} Pharmacy data loaded successfully.`,
-          );
-        } catch (error) {
-          showMessage(
-            "errorMessage",
-            error.message ||
-              `Unable to load ${PHARMACY_STATE_NAME} Pharmacy live data.`,
-          );
-        } finally {
-          button.disabled = false;
-          button.textContent = originalText;
+        ["processingMessage", "successMessage", "errorMessage"].forEach((x) => {
+          const e = document.getElementById(x);
+          e.classList.remove("show");
+          e.textContent = "";
+        });
+        if (id && text) {
+          const e = document.getElementById(id);
+          e.textContent = text;
+          e.classList.add("show");
         }
       }
+      function statusFor(m) {
+        if (!validNumber(m.target) && !validNumber(m.achieved))
+          return { c: "missing", t: "Data Missing" };
+        if (num(m.target) <= 0) return { c: "ok", t: "No Requirement" };
+        if (num(m.achieved) >= num(m.target))
+          return { c: "ok", t: "Target Achieved" };
+        return { c: "pending", t: "Hiring Pending" };
+      }
+      function progressFor(m) {
+        const t = num(m.target),
+          a = num(m.achieved);
+        if (t <= 0) return a > 0 ? 100 : 0;
+        return Math.max(0, Math.min(100, (a / t) * 100));
+      }
+      function statusBadge(m) {
+        const s = statusFor(m);
+        return `<span class="status ${s.c}">${esc(s.t)}</span>`;
+      }
 
-      function getReportData() {
-        if (!liveData || !liveData.totals) return null;
-
+      function calculateTotals(positions) {
+        let target = 0,
+          achieved = 0,
+          remaining = 0,
+          count = 0,
+          done = 0,
+          pending = 0;
+        POSITION_ORDER.forEach((key) => {
+          const m = positions[key];
+          if (!m) return;
+          count++;
+          target += num(m.target);
+          achieved += num(m.achieved);
+          remaining += num(m.haveToAchieve);
+          const s = statusFor(m);
+          if (s.c === "ok") done++;
+          else if (s.c === "pending") pending++;
+        });
         return {
-          sourceKey: PHARMACY_SOURCE_KEY,
-          sourceColumn: liveData.sourceColumn || PHARMACY_SOURCE_LABEL,
-          pharmacyCount: liveData.totals.pharmacyCount || {
-            target: null,
-            achieved: null,
-            unreceived: null,
-          },
-          pharmacyRevenue: liveData.totals.pharmacyRevenue || {
-            target: null,
-            achieved: null,
-            needToAchieve: null,
-          },
-          pharmacyPerBillRevenue: liveData.totals.pharmacyPerBillRevenue || {
-            target: null,
-            generated: null,
-            discount: null,
-          },
+          positionCount: count,
+          target,
+          achieved,
+          remaining,
+          positionsAchieved: done,
+          positionsPending: pending,
         };
       }
 
-      function getMonthName(v) {
-        if (!v) return "";
-        const p = String(v).split("-");
-        if (p.length !== 2) return v;
+      function renderCards(positions) {
+        cardsGrid.innerHTML = "";
+        let count = 0;
+        POSITION_ORDER.forEach((key) => {
+          const m = positions[key];
+          if (!m) return;
+          count++;
+          const s = statusFor(m),
+            p = progressFor(m);
+          const card = document.createElement("article");
+          card.className = "position-card";
+          card.innerHTML = `<div class="card-head"><h3>${esc(m.label)}</h3><span class="status ${s.c}">${esc(s.t)}</span></div><div class="metrics"><div class="metric"><span>Target</span><strong>${fmt(m.target)}</strong></div><div class="metric"><span>Achieved</span><strong>${fmt(m.achieved)}</strong></div><div class="metric need"><span>Have To Achieve</span><strong>${fmt(m.haveToAchieve)}</strong></div></div><div class="progress-row"><span>Achievement</span><strong>${p.toFixed(0)}%</strong></div><div class="track"><div class="bar" style="width:${p}%"></div></div>`;
+          cardsGrid.appendChild(card);
+        });
+        document.getElementById("positionCount").textContent =
+          `${count} Position${count === 1 ? "" : "s"}`;
+        document
+          .getElementById("emptyState")
+          .classList.toggle("show", count === 0);
+      }
+
+      function renderSummaryCards(positions) {
+        const t = calculateTotals(positions);
+        document.getElementById("totalPositions").textContent = fmt(
+          t.positionCount,
+        );
+        document.getElementById("totalTarget").textContent = fmt(t.target);
+        document.getElementById("totalAchieved").textContent = fmt(t.achieved);
+        document.getElementById("totalRemaining").textContent = fmt(
+          t.remaining,
+        );
+        document.getElementById("positionsAchieved").textContent = fmt(
+          t.positionsAchieved,
+        );
+        document.getElementById("positionsPending").textContent = fmt(
+          t.positionsPending,
+        );
+      }
+
+      function renderSummaryTable(positions) {
+        const body = document.getElementById("summaryBody");
+        body.innerHTML = "";
+        let count = 0;
+        POSITION_ORDER.forEach((key) => {
+          const m = positions[key];
+          if (!m) return;
+          count++;
+          const row = document.createElement("tr");
+          row.innerHTML = `<td><strong>${esc(m.label)}</strong></td><td class="num">${fmt(m.target)}</td><td class="num">${fmt(m.achieved)}</td><td class="num">${fmt(m.haveToAchieve)}</td><td class="num">${progressFor(m).toFixed(0)}%</td><td class="status-cell">${statusBadge(m)}</td>`;
+          body.appendChild(row);
+        });
+        if (!count)
+          body.innerHTML =
+            '<tr><td colspan="6">No Karnataka HR summary data is available.</td></tr>';
+      }
+
+      function renderAll(positions) {
+        renderCards(positions);
+        renderSummaryCards(positions);
+        renderSummaryTable(positions);
+      }
+
+      async function loadHrData() {
+        const old = refreshButton.textContent;
+        refreshButton.disabled = true;
+        refreshButton.textContent = "Loading...";
+        showMessage(
+          "processingMessage",
+          "Reading Karnataka HR data from Input → Sheet1...",
+        );
+        try {
+          const response = await fetch(
+            `${API_URL}/reports/hr/ka/live-input`,
+            { method: "GET", credentials: "include", cache: "no-store" },
+          );
+          const result = await response.json();
+          if (response.status === 401) {
+            location.href = "../login.html";
+            return;
+          }
+          if (!response.ok || !result.success)
+            throw new Error(
+              result.message || "Unable to load Karnataka HR data.",
+            );
+          liveData = result;
+          const positions = result.positions || {};
+          renderAll(positions);
+          document.getElementById("sourceNote").textContent =
+            `Live source: ${result.sourceColumn || "Karnataka"} column from ${result.inputSpreadsheetName || "Input"} → ${result.inputSheetName || "Sheet1"}.`;
+          showMessage("successMessage", "Karnataka HR data loaded successfully.");
+        } catch (error) {
+          console.error(error);
+          liveData = null;
+          renderAll({});
+          showMessage(
+            "errorMessage",
+            error.message || "Unable to load Karnataka HR data.",
+          );
+        } finally {
+          refreshButton.disabled = false;
+          refreshButton.textContent = old;
+        }
+      }
+
+      function getMonthName(value) {
+        if (!value) return "";
+        const p = String(value).split("-");
+        if (p.length !== 2) return value;
         return new Date(Number(p[0]), Number(p[1]) - 1, 1).toLocaleDateString(
           "en-IN",
           { month: "long", year: "numeric" },
         );
       }
-
       function formatDateTime(v) {
         if (!v) return "N/A";
         const d = new Date(v);
@@ -1020,87 +828,63 @@
           ? String(v)
           : d.toLocaleString("en-IN");
       }
-
-      function findDriveFile(r, t) {
-        const f = r && Array.isArray(r.driveFiles) ? r.driveFiles : [];
+      function findDriveFile(report, type) {
+        const files =
+          report && Array.isArray(report.driveFiles)
+            ? report.driveFiles
+            : report && Array.isArray(report.files)
+              ? report.files
+              : [];
         return (
-          f.find(
-            (x) =>
-              String(x.type || "").toLowerCase() ===
-              String(t).toLowerCase(),
+          files.find((file) =>
+            String(file.type || file.mimeType || "")
+              .toLowerCase()
+              .includes(String(type).toLowerCase()),
           ) || null
         );
       }
-
-      function driveDownloadUrl(u) {
-        const s = String(u || "");
+      function driveDownloadUrl(url) {
+        const s = String(url || "");
         const m = s.match(/\/d\/([^/]+)/);
         return m && m[1]
-          ? "https://drive.google.com/uc?export=download&id=" +
-              encodeURIComponent(m[1])
+          ? `https://drive.google.com/uc?export=download&id=${encodeURIComponent(m[1])}`
           : s;
       }
-
-      function getHistorySummary(r) {
-        if (r && r.summary) return r.summary;
-        const d = r && r.data ? r.data : {};
-        const count = d.pharmacyCount || {};
-        const revenue = d.pharmacyRevenue || {};
-        const perBill = d.pharmacyPerBillRevenue || {};
-
-        return [
-          `Pharmacy Count: ${formatNumber(count.target)} / ${formatNumber(count.achieved)}`,
-          `Unreceived: ${formatNumber(count.unreceived)}`,
-          `Pharmacy Revenue: ${formatCurrency(revenue.target)} / ${formatCurrency(revenue.achieved)}`,
-          `Revenue Need: ${formatCurrency(revenue.needToAchieve)}`,
-          `Per Bill Target: ${formatCurrency(perBill.target)}`,
-          `Per Bill Generated: ${formatCurrency(perBill.generated)}`,
-          `Discount Per Bill: ${formatCurrency(perBill.discount)}`,
-        ].join(" | ");
+      function getReportData() {
+        if (!liveData) return null;
+        const positions = liveData.positions || {};
+        return {
+          sourceKey: "KA",
+          sourceColumn: liveData.sourceColumn || "Karnataka",
+          positions,
+          totals: calculateTotals(positions),
+        };
       }
-
-      function persistGeneratedReports() {
-        try {
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(generatedReports));
-        } catch (e) {}
-      }
-
-      function loadCachedGeneratedReports() {
-        try {
-          const v = localStorage.getItem(STORAGE_KEY);
-          if (v) {
-            const p = JSON.parse(v);
-            if (Array.isArray(p)) generatedReports = p;
-          }
-        } catch (e) {
-          generatedReports = [];
-        }
+      function getHistorySummary(report) {
+        if (report && report.summary) return report.summary;
+        const d = report && report.data ? report.data : {};
+        const totals = d.totals || calculateTotals(d.positions || {});
+        return `Positions: ${fmt(totals.positionCount)} | Target: ${fmt(totals.target)} | Achieved: ${fmt(totals.achieved)} | Have To Achieve: ${fmt(totals.remaining)} | Positions Achieved: ${fmt(totals.positionsAchieved)} | Hiring Pending: ${fmt(totals.positionsPending)}`;
       }
 
       function renderGeneratedReports() {
         const body = document.getElementById("generatedReportsBody");
-        const count = document.getElementById("reportCount");
-
-        count.textContent =
+        document.getElementById("reportCount").textContent =
           `${generatedReports.length} Report${generatedReports.length === 1 ? "" : "s"}`;
-
         body.innerHTML = "";
-
         if (!generatedReports.length) {
           body.innerHTML =
-            '<tr><td colspan="8" class="history-empty">No Pharmacy generated reports found.</td></tr>';
+            '<tr><td colspan="8" class="history-empty">No Karnataka HR generated reports found.</td></tr>';
           return;
         }
-
-        generatedReports.forEach((r) => {
+        generatedReports.forEach((report) => {
+          const pdf = findDriveFile(report, "pdf"),
+            excel =
+              findDriveFile(report, "excel") ||
+              findDriveFile(report, "spreadsheet") ||
+              findDriveFile(report, "xlsx");
           const row = document.createElement("tr");
-          const pdf = findDriveFile(r, "pdf");
-          const excel =
-            findDriveFile(r, "excel") ||
-            findDriveFile(r, "xlsx");
-
-          row.innerHTML = `<td>${formatDateTime(r.createdAt)}</td><td><strong>${r.reportMonthName || getMonthName(r.reportMonth)}</strong></td><td class="history-summary">${getHistorySummary(r)}</td><td><button type="button" class="table-button view-pdf" data-url="${pdf ? pdf.url || "" : ""}">View PDF</button></td><td><button type="button" class="table-button view-excel" data-url="${excel ? excel.url || "" : ""}">View Excel</button></td><td><button type="button" class="table-button download-pdf" data-url="${pdf ? driveDownloadUrl(pdf.url || "") : ""}">Download PDF</button></td><td><button type="button" class="table-button download-excel" data-url="${excel ? driveDownloadUrl(excel.url || "") : ""}">Download Excel</button></td><td><button type="button" class="table-button send-mail" data-action="send-email" data-report-id="${r.id || r.reportId || ""}">Send Email (2)</button></td>`;
-
+          row.innerHTML = `<td>${formatDateTime(report.createdAt)}</td><td><strong>${esc(report.reportMonthName || getMonthName(report.reportMonth))}</strong></td><td class="history-summary">${esc(getHistorySummary(report))}</td><td><button class="table-button view-pdf" data-url="${esc(pdf ? pdf.url || pdf.webViewLink || "" : "")}">View PDF</button></td><td><button class="table-button view-excel" data-url="${esc(excel ? excel.url || excel.webViewLink || "" : "")}">View Excel</button></td><td><button class="table-button download-pdf" data-url="${esc(pdf ? driveDownloadUrl(pdf.url || pdf.webViewLink || "") : "")}">Download PDF</button></td><td><button class="table-button download-excel" data-url="${esc(excel ? driveDownloadUrl(excel.url || excel.webViewLink || "") : "")}">Download Excel</button></td><td><button class="table-button send-mail" data-action="send-email" data-report-id="${esc(report.id || report.reportId || "")}">Send Email (2)</button></td>`;
           body.appendChild(row);
         });
       }
@@ -1108,78 +892,55 @@
       async function loadGeneratedReports(silent = false) {
         try {
           const response = await fetch(
-            `${API_URL}/reports/pharmacy/${PHARMACY_ROUTE}/generated-reports`,
-            {
-              method: "GET",
-              credentials: "include",
-              cache: "no-store",
-            },
+            `${API_URL}/reports/hr/ka/generated-reports`,
+            { method: "GET", credentials: "include", cache: "no-store" },
           );
-
           const result = await response.json();
-
-          if (response.status === 401 || response.status === 403) {
-            throw new Error(
-              "Karnataka Pharmacy API returned an authorization error. The page will stay open while the main login session is checked separately."
-            );
+          if (response.status === 401) {
+            location.href = "../login.html";
+            return;
           }
-
-          if (!response.ok || !result.success) {
+          if (!response.ok || !result.success)
             throw new Error(
-              result.message ||
-                "Unable to load Pharmacy report history.",
+              result.message || "Unable to load Karnataka HR report history.",
             );
-          }
-
           generatedReports = Array.isArray(result.reports)
             ? result.reports
             : [];
-
-          persistGeneratedReports();
           renderGeneratedReports();
         } catch (error) {
-          if (!silent) {
+          console.error(error);
+          if (!silent)
             showMessage(
               "errorMessage",
-              error.message ||
-                "Unable to load Pharmacy report history.",
+              error.message || "Unable to load Karnataka HR report history.",
             );
-          }
-
           renderGeneratedReports();
         }
       }
 
       async function generateReport() {
-        clearMessages();
-
         const month = document.getElementById("reportMonth").value;
         const data = getReportData();
-
         if (!month) {
           showMessage("errorMessage", "Please select a report month.");
           return;
         }
-
         if (!data) {
           showMessage(
             "errorMessage",
-            "Please refresh live Pharmacy data before generating the report.",
+            "Please refresh Karnataka HR live data before generating the report.",
           );
           return;
         }
-
-        const button = document.getElementById("generateReportButton");
-        const originalText = button.textContent;
-
-        button.disabled = true;
-        button.textContent = "Generating...";
-
+        const b = document.getElementById("generateReportButton"),
+          old = b.textContent;
+        b.disabled = true;
+        b.textContent = "Generating...";
         showMessage(
           "processingMessage",
-          `Generating ${PHARMACY_STATE_NAME} Pharmacy PDF and Excel...`,
+          "Generating Karnataka HR PDF and Excel report...",
         );
-
         try {
           const payload = {
             reportId: Date.now(),
@@ -1188,9 +949,8 @@
             createdAt: new Date().toISOString(),
             data,
           };
-
           const response = await fetch(
-            `${API_URL}/reports/pharmacy/${PHARMACY_ROUTE}/save-drive`,
+            `${API_URL}/reports/hr/ka/save-drive`,
             {
               method: "POST",
               credentials: "include",
@@ -1198,261 +958,147 @@
               body: JSON.stringify(payload),
             },
           );
-
           const result = await response.json();
-
-          if (!response.ok || !result.success) {
+          if (!response.ok || !result.success)
             throw new Error(
-              result.message ||
-                "Unable to generate Pharmacy report.",
+              result.message || "Unable to generate Karnataka HR report.",
             );
-          }
-
           showMessage(
             "successMessage",
-            `${PHARMACY_STATE_NAME} Pharmacy PDF and Excel generated successfully.`,
+            "Karnataka HR PDF and Excel report generated and saved successfully.",
           );
-
           await loadGeneratedReports(true);
         } catch (error) {
           showMessage(
             "errorMessage",
-            error.message ||
-              "Unable to generate Pharmacy report.",
+            error.message || "Unable to generate Karnataka HR report.",
           );
         } finally {
-          button.disabled = false;
-          button.textContent = originalText;
+          b.disabled = false;
+          b.textContent = old;
         }
       }
 
       async function clearHistory() {
         if (
           !confirm(
-            `Clear the ${PHARMACY_REPORT_KEY} generated report history? Drive files will not be deleted.`,
+            "Clear HR_KA generated report history? Drive files will not be deleted.",
           )
-        ) {
+        )
           return;
-        }
-
         try {
           const response = await fetch(
-            `${API_URL}/reports/pharmacy/${PHARMACY_ROUTE}/generated-reports`,
-            {
-              method: "DELETE",
-              credentials: "include",
-            },
+            `${API_URL}/reports/hr/ka/generated-reports`,
+            { method: "DELETE", credentials: "include" },
           );
-
           const result = await response.json();
-
-          if (!response.ok || !result.success) {
+          if (!response.ok || !result.success)
             throw new Error(
-              result.message ||
-                "Unable to clear Pharmacy history.",
+              result.message || "Unable to clear HR report history.",
             );
-          }
-
           generatedReports = [];
-          persistGeneratedReports();
           renderGeneratedReports();
-
           showMessage(
             "successMessage",
-            "Pharmacy report history cleared successfully.",
+            "Karnataka HR report history cleared successfully.",
           );
         } catch (error) {
           showMessage(
             "errorMessage",
-            error.message ||
-              "Unable to clear Pharmacy history.",
+            error.message || "Unable to clear HR report history.",
           );
         }
       }
 
       document
         .getElementById("generatedReportsBody")
-        .addEventListener("click", async (e) => {
-          const b = e.target.closest("button");
-          if (!b) return;
-
-          const url = b.dataset.url;
-
+        .addEventListener("click", async (event) => {
+          const button = event.target.closest("button");
+          if (!button) return;
+          const url = button.dataset.url;
           if (
-            b.classList.contains("view-pdf") ||
-            b.classList.contains("view-excel") ||
-            b.classList.contains("download-pdf") ||
-            b.classList.contains("download-excel")
+            button.classList.contains("view-pdf") ||
+            button.classList.contains("view-excel") ||
+            button.classList.contains("download-pdf") ||
+            button.classList.contains("download-excel")
           ) {
             if (!url) {
               showMessage("errorMessage", "File URL is not available.");
               return;
             }
-
             window.open(url, "_blank", "noopener");
             return;
           }
-
-          if (b.dataset.action === "send-email") {
-            const id = b.dataset.reportId;
-            const rpt = generatedReports.find(
-              (x) => String(x.id || x.reportId) === String(id),
+          if (button.dataset.action === "send-email") {
+            const id = button.dataset.reportId;
+            const report = generatedReports.find(
+              (r) => String(r.id || r.reportId) === String(id),
             );
-
-            if (!rpt) {
-              showMessage("errorMessage", "Selected report was not found.");
+            if (!report) {
+              showMessage("errorMessage", "Selected HR report was not found.");
               return;
             }
-
-            const orig = b.textContent;
-            b.disabled = true;
-            b.textContent = "Sending...";
-
+            const old = button.textContent;
+            button.disabled = true;
+            button.textContent = "Sending...";
             try {
               const response = await fetch(
-                `${API_URL}/reports/pharmacy/${PHARMACY_ROUTE}/send-email`,
+                `${API_URL}/reports/hr/ka/send-email`,
                 {
                   method: "POST",
                   credentials: "include",
                   headers: { "Content-Type": "application/json" },
                   body: JSON.stringify({
-                    reportId: rpt.id || rpt.reportId,
-                    reportMonth: rpt.reportMonth,
-                    reportMonthName: rpt.reportMonthName,
-                    createdAt: rpt.createdAt,
-                    data: rpt.data || getReportData(),
+                    reportId: report.id || report.reportId,
+                    reportMonth: report.reportMonth,
+                    reportMonthName: report.reportMonthName,
+                    createdAt: report.createdAt,
+                    data: report.data || getReportData(),
                   }),
                 },
               );
-
               const result = await response.json();
-
-              if (!response.ok || !result.success) {
+              if (!response.ok || !result.success)
                 throw new Error(
-                  result.message ||
-                    "Unable to send Pharmacy report email.",
+                  result.message || "Unable to send Karnataka HR report email.",
                 );
-              }
-
               showMessage(
                 "successMessage",
                 result.message ||
                   (
                     Number(result.recipientCount) >= 2
-                      ? "Karnataka Pharmacy report sent successfully to both configured recipients."
-                      : "Karnataka Pharmacy report sent successfully."
+                      ? "Karnataka HR report sent successfully to both configured recipients."
+                      : "Karnataka HR report sent successfully."
                   ),
               );
             } catch (error) {
               showMessage(
                 "errorMessage",
-                error.message ||
-                  "Unable to send Pharmacy report email.",
+                error.message || "Unable to send Karnataka HR report email.",
               );
             } finally {
-              b.disabled = false;
-              b.textContent = orig;
+              button.disabled = false;
+              button.textContent = old;
             }
           }
         });
 
-      async function loadAdminProfile() {
-        try {
-          const response = await fetch(
-            `${API_URL}/super-admin/dashboard`,
-            {
-              method: "GET",
-              credentials: "include",
-              cache: "no-store",
-            },
-          );
-
-          if (response.status === 401 || response.status === 403) {
-            window.location.replace("../login.html");
-            return false;
-          }
-
-          let result = {};
-
-          try {
-            result = await response.json();
-          } catch (jsonError) {
-            console.error("Admin profile JSON error:", jsonError);
-            throw new Error(
-              `Authentication service returned an invalid response (${response.status}).`
-            );
-          }
-
-          if (!response.ok) {
-            throw new Error(
-              result.message ||
-                `Unable to verify login. Server returned ${response.status}.`
-            );
-          }
-
-          if (result && result.admin) {
-            setText("adminName", result.admin.name || "Super Admin");
-            setText("adminEmail", result.admin.email || "");
-          }
-
-          return true;
-        } catch (error) {
-          console.error("Admin profile error:", error);
-
-          setText("adminEmail", "Unable to verify session");
-
-          showMessage(
-            "errorMessage",
-            error.message ||
-              "Unable to verify your login session. Please refresh the page."
-          );
-
-          return false;
-        }
-      }
-
-      document
-        .getElementById("logoutButton")
-        .addEventListener("click", async () => {
-          try {
-            await fetch(`${API_URL}/logout`, {
-              method: "POST",
-              credentials: "include",
-            });
-          } catch (e) {}
-
-          location.href = "../login.html";
-        });
-
-      document
-        .getElementById("refreshLiveDataButton")
-        .addEventListener("click", refreshLiveData);
-
+      refreshButton.addEventListener("click", loadHrData);
       document
         .getElementById("generateReportButton")
         .addEventListener("click", generateReport);
-
       document
         .getElementById("refreshHistoryButton")
         .addEventListener("click", () => loadGeneratedReports(false));
-
       document
         .getElementById("clearHistoryButton")
         .addEventListener("click", clearHistory);
-
       (function init() {
-        const i = document.getElementById("reportMonth");
         const d = new Date();
-
-        i.value =
-          d.getFullYear() +
-          "-" +
-          String(d.getMonth() + 1).padStart(2, "0");
-
-        loadCachedGeneratedReports();
+        document.getElementById("reportMonth").value =
+          `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
         renderGeneratedReports();
-        loadAdminProfile();
-        refreshLiveData();
+        loadHrData();
         loadGeneratedReports(true);
       })();
     </script>
