@@ -1056,6 +1056,11 @@ router.get(
    HR PORTAL - KARNATAKA
 ============================================================ */
 
+/*
+ * Primary routes.
+ * These work when this router is mounted at:
+ *   app.use("/api/reports", reportRoutes)
+ */
 router.get(
     "/hr/ka/live-input",
     authMiddleware,
@@ -1088,6 +1093,55 @@ router.post(
 
 router.get(
     "/hr/ka/email-config",
+    authMiddleware,
+    getKaHrEmailConfiguration
+);
+
+
+/*
+ * Backward-compatible aliases.
+ *
+ * Your Karnataka HR frontend calls:
+ *   /api/reports/hr/ka/...
+ *
+ * If this router is mounted at:
+ *   app.use("/api", reportRoutes)
+ *
+ * these aliases make the frontend URLs resolve correctly
+ * without changing the rest of your existing routes.
+ */
+router.get(
+    "/reports/hr/ka/live-input",
+    authMiddleware,
+    getKaHrLiveInput
+);
+
+router.get(
+    "/reports/hr/ka/generated-reports",
+    authMiddleware,
+    getKaHrGeneratedReports
+);
+
+router.delete(
+    "/reports/hr/ka/generated-reports",
+    authMiddleware,
+    clearKaHrGeneratedReports
+);
+
+router.post(
+    "/reports/hr/ka/save-drive",
+    authMiddleware,
+    saveKaHrReportToDrive
+);
+
+router.post(
+    "/reports/hr/ka/send-email",
+    authMiddleware,
+    sendKaHrReportEmail
+);
+
+router.get(
+    "/reports/hr/ka/email-config",
     authMiddleware,
     getKaHrEmailConfiguration
 );
