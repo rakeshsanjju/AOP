@@ -649,6 +649,30 @@
           .replace(/"/g, "&quot;")
           .replace(/'/g, "&#039;");
       }
+
+      async function readJsonResponse(response, fallbackMessage) {
+        const raw = await response.text();
+
+        if (response.status === 401) {
+          location.href = "../login.html";
+          return null;
+        }
+
+        if (!raw || !raw.trim()) {
+          throw new Error(
+            `${fallbackMessage} Server returned an empty response (HTTP ${response.status}).`,
+          );
+        }
+
+        try {
+          return JSON.parse(raw);
+        } catch (error) {
+          console.error("Non-JSON API response:", raw);
+          throw new Error(
+            `${fallbackMessage} Server returned invalid JSON (HTTP ${response.status}).`,
+          );
+        }
+      }
       function showMessage(id, text) {
         ["processingMessage", "successMessage", "errorMessage"].forEach((x) => {
           const e = document.getElementById(x);
@@ -783,11 +807,11 @@
             `${API_URL}/reports/hr/ka/live-input`,
             { method: "GET", credentials: "include", cache: "no-store" },
           );
-          const result = await response.json();
-          if (response.status === 401) {
-            location.href = "../login.html";
-            return;
-          }
+          const result = await readJsonResponse(
+            response,
+            "Unable to load Karnataka HR data.",
+          );
+          if (!result) return;
           if (!response.ok || !result.success)
             throw new Error(
               result.message || "Unable to load Karnataka HR data.",
@@ -895,11 +919,11 @@
             `${API_URL}/reports/hr/ka/generated-reports`,
             { method: "GET", credentials: "include", cache: "no-store" },
           );
-          const result = await response.json();
-          if (response.status === 401) {
-            location.href = "../login.html";
-            return;
-          }
+          const result = await readJsonResponse(
+            response,
+            "Unable to load Karnataka HR report history.",
+          );
+          if (!result) return;
           if (!response.ok || !result.success)
             throw new Error(
               result.message || "Unable to load Karnataka HR report history.",
@@ -958,7 +982,11 @@
               body: JSON.stringify(payload),
             },
           );
-          const result = await response.json();
+          const result = await readJsonResponse(
+            response,
+            "Unable to generate Karnataka HR report.",
+          );
+          if (!result) return;
           if (!response.ok || !result.success)
             throw new Error(
               result.message || "Unable to generate Karnataka HR report.",
@@ -991,7 +1019,11 @@
             `${API_URL}/reports/hr/ka/generated-reports`,
             { method: "DELETE", credentials: "include" },
           );
-          const result = await response.json();
+          const result = await readJsonResponse(
+            response,
+            "Unable to clear HR report history.",
+          );
+          if (!result) return;
           if (!response.ok || !result.success)
             throw new Error(
               result.message || "Unable to clear HR report history.",
@@ -1057,7 +1089,11 @@
                   }),
                 },
               );
-              const result = await response.json();
+              const result = await readJsonResponse(
+                response,
+                "Unable to send Karnataka HR report email.",
+              );
+              if (!result) return;
               if (!response.ok || !result.success)
                 throw new Error(
                   result.message || "Unable to send Karnataka HR report email.",
