@@ -464,7 +464,7 @@
       <div>
         <h1>Karnataka HR Performance Report</h1>
         <p>
-          Karnataka position-wise manpower target, achieved, have-to-achieve, summary and
+          Position-wise manpower target, achieved, have-to-achieve, summary and
           generated reports
         </p>
       </div>
@@ -605,9 +605,7 @@
       </section>
     </main>
     <script>
-      // reportRoutes already defines "/hr/ka/..." and is mounted under "/api".
-      // Therefore the final API URLs are "/api/hr/ka/...".
-      const API_URL = "https://lively-solace-production-10fd.up.railway.app/api";
+      const API_URL = "https://aop-production-f1ca.up.railway.app/api";
       const REPORT_KEY = "HR_KA";
       const POSITION_ORDER = [
         "telecallers",
@@ -650,30 +648,6 @@
           .replace(/>/g, "&gt;")
           .replace(/"/g, "&quot;")
           .replace(/'/g, "&#039;");
-      }
-
-      async function readJsonResponse(response, fallbackMessage) {
-        const raw = await response.text();
-
-        if (response.status === 401) {
-          location.href = "../login.html";
-          return null;
-        }
-
-        if (!raw || !raw.trim()) {
-          throw new Error(
-            `${fallbackMessage} Server returned an empty response (HTTP ${response.status}).`,
-          );
-        }
-
-        try {
-          return JSON.parse(raw);
-        } catch (error) {
-          console.error("Non-JSON API response:", raw);
-          throw new Error(
-            `${fallbackMessage} Server returned invalid JSON (HTTP ${response.status}).`,
-          );
-        }
       }
       function showMessage(id, text) {
         ["processingMessage", "successMessage", "errorMessage"].forEach((x) => {
@@ -806,14 +780,15 @@
         );
         try {
           const response = await fetch(
-            `${API_URL}/hr/ka/live-input`,
+            `${API_URL}/reports/hr/ka/live-input`,
             { method: "GET", credentials: "include", cache: "no-store" },
           );
-          const result = await readJsonResponse(
-            response,
-            "Unable to load Karnataka HR data.",
-          );
-          if (!result) return;
+          const result = await response.json();
+          if (response.status === 401 || response.status === 403) {
+            throw new Error(
+              "Karnataka HR API returned an authorization error. The page will stay open while the main login session is checked separately."
+            );
+          }
           if (!response.ok || !result.success)
             throw new Error(
               result.message || "Unable to load Karnataka HR data.",
@@ -918,17 +893,18 @@
       async function loadGeneratedReports(silent = false) {
         try {
           const response = await fetch(
-            `${API_URL}/hr/ka/generated-reports`,
+            `${API_URL}/reports/hr/ka/generated-reports`,
             { method: "GET", credentials: "include", cache: "no-store" },
           );
-          const result = await readJsonResponse(
-            response,
-            "Unable to load Karnataka HR report history.",
-          );
-          if (!result) return;
+          const result = await response.json();
+          if (response.status === 401 || response.status === 403) {
+            throw new Error(
+              "Karnataka HR API returned an authorization error. The page will stay open while the main login session is checked separately."
+            );
+          }
           if (!response.ok || !result.success)
             throw new Error(
-              result.message || "Unable to load Karnataka HR report history.",
+              result.message || "Unable to load HR report history.",
             );
           generatedReports = Array.isArray(result.reports)
             ? result.reports
@@ -939,7 +915,7 @@
           if (!silent)
             showMessage(
               "errorMessage",
-              error.message || "Unable to load Karnataka HR report history.",
+              error.message || "Unable to load HR report history.",
             );
           renderGeneratedReports();
         }
@@ -976,7 +952,7 @@
             data,
           };
           const response = await fetch(
-            `${API_URL}/hr/ka/save-drive`,
+            `${API_URL}/reports/hr/ka/save-drive`,
             {
               method: "POST",
               credentials: "include",
@@ -984,11 +960,7 @@
               body: JSON.stringify(payload),
             },
           );
-          const result = await readJsonResponse(
-            response,
-            "Unable to generate Karnataka HR report.",
-          );
-          if (!result) return;
+          const result = await response.json();
           if (!response.ok || !result.success)
             throw new Error(
               result.message || "Unable to generate Karnataka HR report.",
@@ -1018,14 +990,10 @@
           return;
         try {
           const response = await fetch(
-            `${API_URL}/hr/ka/generated-reports`,
+            `${API_URL}/reports/hr/ka/generated-reports`,
             { method: "DELETE", credentials: "include" },
           );
-          const result = await readJsonResponse(
-            response,
-            "Unable to clear HR report history.",
-          );
-          if (!result) return;
+          const result = await response.json();
           if (!response.ok || !result.success)
             throw new Error(
               result.message || "Unable to clear HR report history.",
@@ -1077,7 +1045,7 @@
             button.textContent = "Sending...";
             try {
               const response = await fetch(
-                `${API_URL}/hr/ka/send-email`,
+                `${API_URL}/reports/hr/ka/send-email`,
                 {
                   method: "POST",
                   credentials: "include",
@@ -1091,11 +1059,7 @@
                   }),
                 },
               );
-              const result = await readJsonResponse(
-                response,
-                "Unable to send Karnataka HR report email.",
-              );
-              if (!result) return;
+              const result = await response.json();
               if (!response.ok || !result.success)
                 throw new Error(
                   result.message || "Unable to send Karnataka HR report email.",
@@ -1121,6 +1085,66 @@
           }
         });
 
+      async function checkAuthentication() {
+        try {
+          const response = await fetch(`${API_URL}/super-admin/dashboard`, {
+            method: "GET",
+            credentials: "include",
+            cache: "no-store",
+          });
+
+          if (response.status === 401 || response.status === 403) {
+            window.location.replace("../login.html");
+            return false;
+          }
+
+          let result = {};
+
+          try {
+            result = await response.json();
+          } catch (jsonError) {
+            console.error("Authentication response JSON error:", jsonError);
+            throw new Error(
+              `Authentication service returned an invalid response (${response.status}).`
+            );
+          }
+
+          if (!response.ok) {
+            throw new Error(
+              result.message ||
+                `Unable to verify login. Server returned ${response.status}.`
+            );
+          }
+
+          if (result.success === false) {
+            const message = String(result.message || "").toLowerCase();
+
+            if (
+              message.includes("unauthorized") ||
+              message.includes("not authenticated") ||
+              message.includes("session expired")
+            ) {
+              window.location.replace("../login.html");
+              return false;
+            }
+
+            throw new Error(result.message || "Unable to verify login.");
+          }
+
+          return true;
+        } catch (error) {
+          console.error("Authentication error:", error);
+
+          showMessage(
+            "errorMessage",
+            error.message ||
+              "Unable to verify your login session. Please refresh the page."
+          );
+
+          return false;
+        }
+      }
+
       refreshButton.addEventListener("click", loadHrData);
       document
         .getElementById("generateReportButton")
@@ -1131,11 +1155,19 @@
       document
         .getElementById("clearHistoryButton")
         .addEventListener("click", clearHistory);
-      (function init() {
+      (async function init() {
         const d = new Date();
         document.getElementById("reportMonth").value =
           `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+
         renderGeneratedReports();
+
+        const authenticated = await checkAuthentication();
+
+        if (!authenticated) {
+          return;
+        }
+
         loadHrData();
         loadGeneratedReports(true);
       })();

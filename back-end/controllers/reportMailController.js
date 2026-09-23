@@ -4,12 +4,6 @@ const ExcelJS = require("exceljs");
 const PDFDocument = require("pdfkit");
 const transporter = require("../config/mailConfig");
 
-if (!transporter || typeof transporter.sendMail !== "function") {
-    throw new Error(
-        "Invalid mailConfig export: expected Nodemailer transporter. Check config/mailConfig.js and ensure it ends with module.exports = transporter;"
-    );
-}
-
 /*
  * ============================================================
  * GOOGLE APPS SCRIPT SHARED SECRET
