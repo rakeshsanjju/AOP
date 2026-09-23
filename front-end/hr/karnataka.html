@@ -605,6 +605,8 @@
       </section>
     </main>
     <script>
+      // reportRoutes already defines "/hr/ka/..." and is mounted under "/api".
+      // Therefore the final API URLs are "/api/hr/ka/...".
       const API_URL = "https://lively-solace-production-10fd.up.railway.app/api";
       const REPORT_KEY = "HR_KA";
       const POSITION_ORDER = [
@@ -804,7 +806,7 @@
         );
         try {
           const response = await fetch(
-            `${API_URL}/reports/hr/ka/live-input`,
+            `${API_URL}/hr/ka/live-input`,
             { method: "GET", credentials: "include", cache: "no-store" },
           );
           const result = await readJsonResponse(
@@ -916,7 +918,7 @@
       async function loadGeneratedReports(silent = false) {
         try {
           const response = await fetch(
-            `${API_URL}/reports/hr/ka/generated-reports`,
+            `${API_URL}/hr/ka/generated-reports`,
             { method: "GET", credentials: "include", cache: "no-store" },
           );
           const result = await readJsonResponse(
@@ -974,7 +976,7 @@
             data,
           };
           const response = await fetch(
-            `${API_URL}/reports/hr/ka/save-drive`,
+            `${API_URL}/hr/ka/save-drive`,
             {
               method: "POST",
               credentials: "include",
@@ -1016,7 +1018,7 @@
           return;
         try {
           const response = await fetch(
-            `${API_URL}/reports/hr/ka/generated-reports`,
+            `${API_URL}/hr/ka/generated-reports`,
             { method: "DELETE", credentials: "include" },
           );
           const result = await readJsonResponse(
@@ -1075,7 +1077,7 @@
             button.textContent = "Sending...";
             try {
               const response = await fetch(
-                `${API_URL}/reports/hr/ka/send-email`,
+                `${API_URL}/hr/ka/send-email`,
                 {
                   method: "POST",
                   credentials: "include",
