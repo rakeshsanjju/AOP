@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html lang="en">
 
 <head>
@@ -14,249 +15,348 @@
         Super Admin Login
     </title>
 
+
     <style>
 
         * {
+
             margin: 0;
+
             padding: 0;
-            box-sizing: border-box;
+
+            box-sizing:
+                border-box;
+
             font-family:
                 Arial,
                 sans-serif;
+
         }
 
+
         body {
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+
+            min-height:
+                100vh;
+
+            display:
+                flex;
+
+            justify-content:
+                center;
+
+            align-items:
+                center;
+
             background:
                 linear-gradient(
                     150deg,
                     #0f172a,
                     #1e293b
                 );
+
         }
+
 
         .login-card {
-            width: 390px;
-            max-width:
-                calc(
-                    100% - 30px
-                );
+
+            width:
+                390px;
+
             background:
                 #ffffff;
+
             padding:
                 40px;
+
             border-radius:
                 18px;
-            box-shadow:
-                0 20px 50px
-                rgba(
-                    0,
-                    0,
-                    0,
-                    0.20
-                );
+
         }
+
 
         h1 {
+
             text-align:
                 center;
+
             margin-bottom:
                 8px;
+
         }
+
 
         .subtitle {
+
             text-align:
                 center;
+
             color:
                 #64748b;
+
             margin-bottom:
                 30px;
+
             font-size:
                 13px;
+
         }
+
 
         .form-group {
+
             margin-bottom:
                 20px;
+
         }
+
 
         label {
+
             display:
                 block;
+
             margin-bottom:
                 8px;
+
             font-size:
                 13px;
+
             font-weight:
                 600;
+
         }
 
+
         input {
+
             width:
                 100%;
+
             height:
                 45px;
+
             border:
                 1px solid
                 #cbd5e1;
+
             border-radius:
                 7px;
+
             padding:
                 0 12px;
+
             outline:
                 none;
-            font-size:
-                14px;
+
         }
+
 
         input:focus {
+
             border-color:
                 #2563eb;
+
         }
+
 
         .password-box {
+
             position:
                 relative;
+
         }
+
 
         .password-box input {
+
             padding-right:
                 65px;
+
         }
+
 
         #showPassword {
+
             position:
                 absolute;
+
             right:
                 10px;
+
             top:
                 50%;
+
             transform:
                 translateY(-50%);
+
             border:
                 0;
+
             background:
                 transparent;
+
             color:
                 #2563eb;
+
             cursor:
                 pointer;
+
         }
+
 
         #errorMessage {
+
             display:
                 none;
+
             background:
                 #fee2e2;
+
             color:
                 #dc2626;
+
             padding:
                 10px;
+
             border-radius:
                 6px;
+
             font-size:
                 12px;
+
             margin-bottom:
                 15px;
+
         }
+
 
         #loginButton {
+
             width:
                 100%;
+
             height:
                 46px;
+
             border:
                 0;
+
             background:
                 #2454dc;
+
             color:
                 white;
+
             font-weight:
                 600;
+
             border-radius:
                 7px;
+
             cursor:
                 pointer;
-            font-size:
-                14px;
+
         }
 
-        #loginButton:hover {
-            background:
-                #1d4ed8;
-        }
 
         #loginButton:disabled {
+
             opacity:
                 0.7;
-            cursor:
-                not-allowed;
+
         }
 
+
         .footer {
+
             margin-top:
                 22px;
+
             text-align:
                 center;
+
             color:
                 #94a3b8;
+
             font-size:
                 11px;
+
         }
 
     </style>
 
 </head>
 
+
 <body>
 
+
 <div class="login-card">
+
 
     <h1>
         Super Admin
     </h1>
 
+
     <p class="subtitle">
+
         Sign in to access your admin dashboard
+
     </p>
+
 
     <form id="loginForm">
 
+
         <div class="form-group">
 
-            <label for="email">
+            <label>
                 Email Address
             </label>
 
+
             <input
+
                 type="email"
+
                 id="email"
+
                 value="rakesh@avishospitals.com"
+
                 placeholder="Enter your email"
-                autocomplete="username"
+
                 required
+
             >
 
         </div>
 
+
+
         <div class="form-group">
 
-            <label for="password">
+            <label>
                 Password
             </label>
 
+
             <div class="password-box">
 
+
                 <input
+
                     type="password"
+
                     id="password"
+
                     placeholder="Enter your password"
-                    autocomplete="current-password"
+
                     required
+
                 >
+
 
                 <button
                     type="button"
@@ -265,45 +365,50 @@
                     Show
                 </button>
 
+
             </div>
 
         </div>
 
+
+
         <div id="errorMessage">
         </div>
+
+
 
         <button
             id="loginButton"
             type="submit"
         >
+
             Login
+
         </button>
 
+
     </form>
+
 
     <p class="footer">
         Authorized users only
     </p>
 
+
 </div>
+
+
 
 <script>
 
+
 // =====================================================
-// API BASE URL
-// =====================================================
-//
-// This keeps the frontend on:
-// https://aop.avisvascularcentre.com
-//
-// Login request becomes:
-// POST https://aop.avisvascularcentre.com/api/login
-//
-// Your web server / reverse proxy must forward /api/*
-// to the Railway Express backend.
+// BACKEND URL
 // =====================================================
 
-const API_URL = "/api";
+const API_URL =
+    "https://aop-production-f1ca.up.railway.app/api";
+
 
 
 // =====================================================
@@ -315,25 +420,30 @@ const loginForm =
         "loginForm"
     );
 
+
 const emailInput =
     document.getElementById(
         "email"
     );
+
 
 const passwordInput =
     document.getElementById(
         "password"
     );
 
+
 const loginButton =
     document.getElementById(
         "loginButton"
     );
 
+
 const errorMessage =
     document.getElementById(
         "errorMessage"
     );
+
 
 const showPassword =
     document.getElementById(
@@ -341,8 +451,9 @@ const showPassword =
     );
 
 
+
 // =====================================================
-// SHOW / HIDE PASSWORD
+// SHOW PASSWORD
 // =====================================================
 
 showPassword.addEventListener(
@@ -374,25 +485,28 @@ showPassword.addEventListener(
 );
 
 
+
 // =====================================================
 // LOGIN
 // =====================================================
 
 loginForm.addEventListener(
     "submit",
-
     async (event) => {
 
         event.preventDefault();
 
+
         hideError();
 
+
         const email =
-            emailInput.value
-                .trim();
+            emailInput.value.trim();
+
 
         const password =
             passwordInput.value;
+
 
         if (
             !email ||
@@ -407,34 +521,36 @@ loginForm.addEventListener(
 
         }
 
+
         try {
 
             loginButton.disabled =
                 true;
 
+
             loginButton.textContent =
                 "Logging in...";
 
-            const loginUrl =
-                `${API_URL}/login`;
 
-            console.log(
-                "Sending login request to:",
-                loginUrl
-            );
+            // =========================================
+            // IMPORTANT
+            // CALL PORT 3000, NOT PORT 5500
+            // =========================================
 
             const response =
                 await fetch(
 
-                    loginUrl,
+                    `${API_URL}/login`,
 
                     {
 
                         method:
                             "POST",
 
+
                         credentials:
                             "include",
+
 
                         headers: {
 
@@ -442,6 +558,7 @@ loginForm.addEventListener(
                                 "application/json"
 
                         },
+
 
                         body:
                             JSON.stringify({
@@ -458,51 +575,45 @@ loginForm.addEventListener(
 
                 );
 
-            console.log(
-                "Login HTTP status:",
-                response.status
-            );
 
             const contentType =
                 response.headers.get(
                     "content-type"
-                ) || "";
+                );
+
 
             if (
+                !contentType ||
                 !contentType.includes(
                     "application/json"
                 )
             ) {
 
-                const rawResponse =
-                    await response.text();
-
-                console.error(
-                    "Non-JSON backend response:",
-                    rawResponse
-                );
-
                 throw new Error(
-                    `Backend returned non-JSON response. HTTP ${response.status}`
+                    "Backend returned invalid response"
                 );
 
             }
 
+
             const data =
                 await response.json();
+
 
             console.log(
                 "Login response:",
                 data
             );
 
+
             if (
                 response.ok &&
                 data.success
             ) {
 
+                // Live Server page
+
                 window.location.replace(
-                    data.redirect ||
                     "./super-Admin.html"
                 );
 
@@ -510,10 +621,14 @@ loginForm.addEventListener(
 
             }
 
+
             showError(
+
                 data.message ||
-                "Invalid email or password"
+                "Invalid login"
+
             );
+
 
         } catch (error) {
 
@@ -522,14 +637,17 @@ loginForm.addEventListener(
                 error
             );
 
+
             showError(
-                "Unable to connect to the login server"
+                "Unable to connect to backend server"
             );
+
 
         } finally {
 
             loginButton.disabled =
                 false;
+
 
             loginButton.textContent =
                 "Login";
@@ -538,6 +656,7 @@ loginForm.addEventListener(
 
     }
 );
+
 
 
 // =====================================================
@@ -551,10 +670,12 @@ function showError(
     errorMessage.textContent =
         message;
 
+
     errorMessage.style.display =
         "block";
 
 }
+
 
 
 // =====================================================
@@ -566,12 +687,15 @@ function hideError() {
     errorMessage.textContent =
         "";
 
+
     errorMessage.style.display =
         "none";
 
 }
 
+
 </script>
+
 
 </body>
 
