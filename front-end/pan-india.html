@@ -1268,7 +1268,7 @@
             <div class="submenu">
 
                 <a
-                    href="./pharmacy/ap&ts.html"
+                    href="./pharmacy/ap%26ts.html"
                     class="submenu-link"
                 >
                     AP &amp; TS
@@ -1939,7 +1939,7 @@
 ===================================================== */
 
 const API_URL =
-    "http://127.0.0.1:3000/api";
+    `https://aop-production-f1ca.up.railway.app/api`;
 
 
 let panIndiaData =
@@ -4215,7 +4215,20 @@ function renderPanIndia(
             failures
                 .map(
                     failure =>
-                        `${failure.label}: ${failure.message}`
+                        (
+                            failure.label === "Maharashtra"
+                            &&
+                            String(
+                                failure.message ||
+                                ""
+                            ).includes(
+                                "HTTP 404"
+                            )
+                        )
+                            ?
+                            "Maharashtra: Apps Script deployment is unavailable. Deploy the latest Code.gs as a NEW Web App version and set MH_APPS_SCRIPT_WEB_APP_URL in Railway to that new /exec URL."
+                            :
+                            `${failure.label}: ${failure.message}`
                 )
                 .join(
                     " | "
@@ -6024,4 +6037,3 @@ loadGeneratedReports(
 </body>
 
 </html>
-
