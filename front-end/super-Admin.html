@@ -1,3 +1,1910 @@
+
+User attachment
+no page is loading
+The page itself is loading. The live Google Sheet data is not loading because the backend returns 500.
+
+Your console shows the exact Apps Script error:
+
+Could not find the "Particulars" header in the live Input sheet.
+Your current Apps Script searches for Particulars / Particular / Parameters / Parameter, and only checks the first 20 rows. 
+
+So the Google Sheet is accessible, but the script cannot identify the column containing the parameter names.
+
+Replace your existing findLiveHeaderLocation_() and normalizeInputLabel_() functions with this more flexible version. It no longer depends only on the word Particulars; it can also detect the table from known KPI names.
+
+/* ============================================================
+   FIND LIVE INPUT TABLE HEADER - ROBUST VERSION
+
+   Supports:
+   Particulars
+   Particular
+   Parameters
+   Parameter
+   Metrics
+   Metric
+   KPI
+   KPI Name
+   Description
+   Particular Name
+
+   Also detects table automatically from KPI rows.
+============================================================ */
+
+function findLiveHeaderLocation_(values) {
+
+  if (
+    !Array.isArray(values) ||
+    values.length === 0
+  ) {
+
+    return null;
+
+  }
+
+
+  /*
+   * Possible names for the column
+   * containing KPI/parameter labels.
+   */
+
+  const allowedHeaders = [
+
+    "particulars",
+
+    "particular",
+
+    "particular name",
+
+    "parameters",
+
+    "parameter",
+
+    "metrics",
+
+    "metric",
+
+    "kpi",
+
+    "kpi name",
+
+    "description",
+
+    "parameter name",
+
+    "particulars name"
+
+  ];
+
+
+  /*
+   * Scan more rows.
+   *
+   * Earlier code scanned only first 20 rows.
+   * This checks up to first 100 rows.
+   */
+
+  const rowsToCheck =
+    Math.min(
+      values.length,
+      100
+    );
+
+
+  /* ========================================================
+     METHOD 1
+     Find explicit header such as "Particulars"
+  ======================================================== */
+
+  for (
+    let rowIndex = 0;
+    rowIndex < rowsToCheck;
+    rowIndex++
+  ) {
+
+
+    const row =
+      values[rowIndex] || [];
+
+
+    for (
+      let columnIndex = 0;
+      columnIndex < row.length;
+      columnIndex++
+    ) {
+
+
+      const normalized =
+        normalizeInputLabel_(
+          row[columnIndex]
+        );
+
+
+      if (
+        allowedHeaders.indexOf(
+          normalized
+        ) !== -1
+      ) {
+
+
+        Logger.log(
+          "Live table header detected at row "
+          +
+          (rowIndex + 1)
+          +
+          ", column "
+          +
+          columnNumberToLetter_(
+            columnIndex + 1
+          )
+          +
+          ", value="
+          +
+          row[columnIndex]
+        );
+
+
+        return {
+
+          rowIndex:
+            rowIndex,
+
+          particularsColumnIndex:
+            columnIndex
+
+        };
+
+
+      }
+
+
+    }
+
+
+  }
+
+
+
+  /* ========================================================
+     METHOD 2
+     Automatically detect using known KPI parameter names.
+
+     This makes the code work even when the heading itself
+     is blank or named something unexpected.
+  ======================================================== */
+
+
+  const knownParameterAliases = [];
+
+
+  Object.keys(
+    LIVE_PARAMETER_ALIASES
+  ).forEach(
+    function(key) {
+
+
+      const aliases =
+        LIVE_PARAMETER_ALIASES[key];
+
+
+      if (
+        Array.isArray(aliases)
+      ) {
+
+
+        aliases.forEach(
+          function(alias) {
+
+
+            const normalizedAlias =
+              normalizeInputLabel_(
+                alias
+              );
+
+
+            if (
+              normalizedAlias &&
+              knownParameterAliases.indexOf(
+                normalizedAlias
+              ) === -1
+            ) {
+
+
+              knownParameterAliases.push(
+                normalizedAlias
+              );
+
+
+            }
+
+
+          }
+        );
+
+
+      }
+
+
+    }
+  );
+
+
+
+  /*
+   * Search the first 100 rows for known KPI names.
+   */
+
+  for (
+    let rowIndex = 0;
+    rowIndex < rowsToCheck;
+    rowIndex++
+  ) {
+
+
+    const row =
+      values[rowIndex] || [];
+
+
+    for (
+      let columnIndex = 0;
+      columnIndex < row.length;
+      columnIndex++
+    ) {
+
+
+      const normalizedCell =
+        normalizeInputLabel_(
+          row[columnIndex]
+        );
+
+
+      if (
+        knownParameterAliases.indexOf(
+          normalizedCell
+        ) !== -1
+      ) {
+
+
+        /*
+         * We found something like:
+         *
+         * IP Count Target
+         * OP Count Target
+         * Leads Target
+         *
+         * Therefore the row directly above
+         * is most likely the table header.
+         */
+
+
+        const detectedHeaderRow =
+          findLikelyHeaderRowAbove_(
+            values,
+            rowIndex,
+            columnIndex
+          );
+
+
+        Logger.log(
+          "Live table automatically detected using KPI '"
+          +
+          row[columnIndex]
+          +
+          "'. Header row="
+          +
+          (detectedHeaderRow + 1)
+          +
+          ", particulars column="
+          +
+          columnNumberToLetter_(
+            columnIndex + 1
+          )
+        );
+
+
+        return {
+
+          rowIndex:
+            detectedHeaderRow,
+
+          particularsColumnIndex:
+            columnIndex
+
+        };
+
+
+      }
+
+
+    }
+
+
+  }
+
+
+
+  /*
+   * Nothing found.
+   */
+
+  Logger.log(
+    "Unable to detect live Input table header."
+  );
+
+
+  return null;
+
+}
+
+
+
+/* ============================================================
+   FIND MOST LIKELY HEADER ROW ABOVE KPI DATA
+============================================================ */
+
+function findLikelyHeaderRowAbove_(
+  values,
+  firstDataRowIndex,
+  particularsColumnIndex
+) {
+
+
+  /*
+   * Normally header is directly above KPI data.
+   */
+
+  const minimumRow =
+    Math.max(
+      0,
+      firstDataRowIndex - 10
+    );
+
+
+  for (
+    let rowIndex =
+      firstDataRowIndex - 1;
+
+    rowIndex >= minimumRow;
+
+    rowIndex--
+  ) {
+
+
+    const row =
+      values[rowIndex] || [];
+
+
+    /*
+     * Look for source headings such as:
+     *
+     * APTS
+     * Karnataka
+     * Tamil Nadu
+     * West Bengal
+     * Maharashtra
+     * Delhi
+     */
+
+
+    let sourceMatches = 0;
+
+
+    Object.keys(
+      CONFIG.INPUT_COLUMNS
+    ).forEach(
+      function(sourceKey) {
+
+
+        const aliases =
+          CONFIG.INPUT_COLUMNS[
+            sourceKey
+          ];
+
+
+        if (
+          !Array.isArray(aliases)
+        ) {
+
+          return;
+
+        }
+
+
+        const index =
+          findHeaderAliasIndex_(
+            row,
+            aliases
+          );
+
+
+        if (
+          index !== -1
+        ) {
+
+
+          sourceMatches++;
+
+
+        }
+
+
+      }
+    );
+
+
+    /*
+     * One matching source heading is enough.
+     */
+
+    if (
+      sourceMatches > 0
+    ) {
+
+
+      return rowIndex;
+
+
+    }
+
+
+  }
+
+
+
+  /*
+   * Fallback:
+   * directly previous row.
+   */
+
+  return Math.max(
+    0,
+    firstDataRowIndex - 1
+  );
+
+}
+
+
+
+/* ============================================================
+   NORMALIZE LIVE INPUT LABEL
+
+   Handles:
+   - extra spaces
+   - line breaks
+   - underscores
+   - hyphens
+   - smart dashes
+   - NBSP
+   - colon
+   - leading/trailing punctuation
+============================================================ */
+
+function normalizeInputLabel_(value) {
+
+
+  return String(
+    value === null ||
+    value === undefined
+      ?
+      ""
+      :
+      value
+  )
+
+    /* Remove non-breaking spaces */
+
+    .replace(
+      /\u00A0/g,
+      " "
+    )
+
+    /* Remove zero-width characters */
+
+    .replace(
+      /[\u200B-\u200D\uFEFF]/g,
+      ""
+    )
+
+    /* Convert line breaks to spaces */
+
+    .replace(
+      /[\r\n\t]+/g,
+      " "
+    )
+
+    .trim()
+
+    .toLowerCase()
+
+    /* underscores / dash variations */
+
+    .replace(
+      /[_–—-]+/g,
+      " "
+    )
+
+    /* Remove ending colon */
+
+    .replace(
+      /:+$/g,
+      ""
+    )
+
+    /* Normalize repeated spaces */
+
+    .replace(
+      /\s+/g,
+      " "
+    )
+
+    .trim();
+
+}
+
+
+
+/* ============================================================
+   DIAGNOSTIC
+   RUN MANUALLY FROM APPS SCRIPT
+
+   This will show exactly what Apps Script
+   is reading from the live Google Sheet.
+============================================================ */
+
+function debugLiveInputSheet() {
+
+
+  const spreadsheet =
+    SpreadsheetApp.openById(
+      CONFIG.INPUT_SPREADSHEET_ID
+    );
+
+
+  const sheet =
+    spreadsheet.getSheetByName(
+      CONFIG.INPUT_SHEET_NAME
+    );
+
+
+  if (!sheet) {
+
+
+    throw new Error(
+      "Sheet tab not found: "
+      +
+      CONFIG.INPUT_SHEET_NAME
+    );
+
+
+  }
+
+
+  const lastRow =
+    sheet.getLastRow();
+
+
+  const lastColumn =
+    sheet.getLastColumn();
+
+
+  Logger.log(
+    "Spreadsheet = "
+    +
+    spreadsheet.getName()
+  );
+
+
+  Logger.log(
+    "Sheet = "
+    +
+    sheet.getName()
+  );
+
+
+  Logger.log(
+    "Last Row = "
+    +
+    lastRow
+  );
+
+
+  Logger.log(
+    "Last Column = "
+    +
+    lastColumn
+  );
+
+
+  const numberOfRows =
+    Math.min(
+      lastRow,
+      30
+    );
+
+
+  const values =
+    sheet
+      .getRange(
+        1,
+        1,
+        numberOfRows,
+        lastColumn
+      )
+      .getDisplayValues();
+
+
+  values.forEach(
+    function(row, index) {
+
+
+      Logger.log(
+        "ROW "
+        +
+        (index + 1)
+        +
+        " = "
+        +
+        JSON.stringify(row)
+      );
+
+
+    }
+  );
+
+
+  const headerLocation =
+    findLiveHeaderLocation_(
+      values
+    );
+
+
+  Logger.log(
+    "DETECTED HEADER = "
+    +
+    JSON.stringify(
+      headerLocation
+    )
+  );
+
+
+  return {
+
+    success: true,
+
+    spreadsheet:
+      spreadsheet.getName(),
+
+    sheet:
+      sheet.getName(),
+
+    lastRow:
+      lastRow,
+
+    lastColumn:
+      lastColumn,
+
+    headerLocation:
+      headerLocation
+
+  };
+
+}
+
+Also update this error inside getLiveInputResponse_().
+
+Replace
+if (!headerLocation) {
+
+  throw new Error(
+    'Could not find the "Particulars" header in the live Input sheet.'
+  );
+
+}
+
+With
+if (!headerLocation) {
+
+  throw new Error(
+    'Could not detect the live Input table. '
+    +
+    'The sheet must contain a parameter/KPI column and source columns such as '
+    +
+    'APTS, Karnataka, Tamil Nadu, West Bengal, Maharashtra or Delhi. '
+    +
+    'Run debugLiveInputSheet() in Apps Script to inspect the values being read.'
+  );
+
+}
+
+Then do this:
+
+Save Apps Script.
+Run debugLiveInputSheet() manually.
+Check Execution log. You should see the actual rows Apps Script is reading.
+Run setupAuthorization() once.
+Run testPanIndiaLiveInput().
+Deploy → Manage deployments → Edit → New version → Deploy.
+Reload your APTS page with Ctrl + Shift + R.
+Your screenshot indicates the Railway API itself is reachable; it returns 500 only because Apps Script says it cannot detect the sheet table. So fix the Apps Script header detection first—the frontend page does not need to be rewritten for this particular error.
+
+give the fully updated code in one layout
+Yes. I combined everything into one complete updated Apps Script file. It keeps your existing reports/history/save logic and the configured live-input spreadsheet, while fixing the rigid header detection that previously depended on finding "Particulars" in the first 20 rows. Your source is configured to use the separate live-input spreadsheet and Sheet1. 
+ The old detection logic specifically searched for Particulars / Particular / Parameters / Parameter, which is why your current sheet layout can fail. 
+
+Full updated code — one file
+Download the complete V21 Apps Script
+
+I also created a plain-text version in case .gs does not open conveniently:
+
+The updated version includes:
+
+Pan India aggregation for APTS + Karnataka + Tamil Nadu + West Bengal + Maharashtra + Delhi
+More flexible detection of Particulars, Parameters, Metric, KPI, etc.
+Automatic detection from rows such as IP Count Target, OP Count Target, Leads Target, etc.
+Searches up to 100 rows instead of only 20.
+Handles hidden spaces, non-breaking spaces, line breaks, underscores and dashes.
+debugLiveInputSheet() diagnostic function.
+More useful live-input error messages.
+Existing Google Sheet/Drive report functions preserved.
+Script version updated to:
+"2026-10-02-PAN-INDIA-LIVE-V21"
+
+After replacing your Apps Script with this complete file, run these functions in this order:
+
+setupAuthorization()
+
+then:
+
+debugLiveInputSheet()
+
+then:
+
+testPanIndiaLiveInput()
+
+After that, use Deploy → Manage deployments → Edit → New version → Deploy, then hard-refresh your AOP page with Ctrl + Shift + R.
+
+
+Avis_Apps_Script_V21_Full_Updated.txt
+Document
+User attachment
+User attachment
+
+Pasted text(20261002-061350).txt
+Document
+LAB AND PHARMACY TARGET IS showing in correct in dashboard in sheet its showing 1083060 and in dashboard it is showing  12,31,541   rectify the error and display the correct code for lab and pharmacy in pan india report
+
+
+Worked for 4m 7s
+
+
+I found the exact calculation error.
+
+Your dashboard is currently effectively doing this for Pharmacy and Lab:
+
+Target = Achieved + Yet To Be
+That is wrong for the Pan India target because some states have already exceeded their targets, while their Yet To Be value is 0.
+
+For example:
+
+Lab:
+₹9,82,161 achieved
++ ₹2,49,380 yet to be
+= ₹12,31,541  ❌ current dashboard
+
+Actual sheet target:
+₹8,31,060
++ ₹1,17,000
++ ₹1,35,000
++ ₹0
++ ₹0
+= ₹10,83,060 ✅
+Similarly:
+
+Pharmacy Target:
+₹85,02,120
++ ₹6,43,344
++ ₹6,46,875
++ ₹8,68,702
++ ₹77,000
+= ₹1,07,38,041 ✅
+Your Pan India state-wise revenue table is already based on APTS + KA + TN + WB + MH, which matches the sheet shown. 
+
+Use the following corrected code before your renderPanIndia() function.
+
+/* =====================================================
+   FIX PHARMACY + LAB PAN INDIA REVENUE
+
+   IMPORTANT:
+   TARGET = SUM OF TARGET COLUMN
+
+   DO NOT calculate:
+   target = achieved + remaining
+===================================================== */
+
+
+/* =====================================================
+   SUM REVENUE FROM SHEET STATES
+
+   Sources:
+   APTS
+   Karnataka
+   Tamil Nadu
+   West Bengal
+   Maharashtra
+===================================================== */
+
+function sumRevenueMetricFromSheetStates(
+    states,
+    metricKey,
+    side
+) {
+
+    const stateColumns = [
+
+        {
+            aliases: [
+                "APTS",
+                "AP & TS",
+                "APTS Combined"
+            ]
+        },
+
+        {
+            aliases: [
+                "KA",
+                "Karnataka"
+            ]
+        },
+
+        {
+            aliases: [
+                "TN",
+                "Tamil Nadu",
+                "TamilNadu"
+            ]
+        },
+
+        {
+            aliases: [
+                "WB",
+                "West Bengal",
+                "WestBengal"
+            ]
+        },
+
+        {
+            aliases: [
+                "MH",
+                "Maharashtra"
+            ]
+        }
+
+    ];
+
+
+    const resolvedStates =
+
+        stateColumns
+
+            .map(
+                column =>
+                    findRevenueReportState(
+                        states,
+                        column.aliases
+                    )
+            )
+
+            .filter(
+                Boolean
+            );
+
+
+    let total = 0;
+
+    let hasValue = false;
+
+
+    resolvedStates.forEach(
+        state => {
+
+
+            const metric =
+
+                state
+                &&
+                state[metricKey]
+
+                    ?
+
+                    state[metricKey]
+
+                    :
+
+                    null;
+
+
+            if (!metric) {
+
+                return;
+
+            }
+
+
+            const rawValue =
+                metric[side];
+
+
+            if (
+                rawValue === null
+                ||
+                rawValue === undefined
+                ||
+                rawValue === ""
+            ) {
+
+                return;
+
+            }
+
+
+            const value =
+                Number(
+                    rawValue
+                );
+
+
+            if (
+                Number.isFinite(
+                    value
+                )
+            ) {
+
+                total += value;
+
+                hasValue = true;
+
+            }
+
+
+        }
+    );
+
+
+    return hasValue
+
+        ?
+
+        total
+
+        :
+
+        null;
+
+}
+
+
+
+/* =====================================================
+   UPDATE PARAMETER CARD
+
+   Updates visible dashboard cards:
+   Target
+   Achieved
+   Yet To Achieve
+===================================================== */
+
+function updateRevenueParameterCard(
+    cards,
+    cardTitle,
+    metric
+) {
+
+
+    if (
+        !Array.isArray(cards)
+        ||
+        !metric
+    ) {
+
+        return;
+
+    }
+
+
+    const wantedTitle =
+
+        String(
+            cardTitle
+        )
+
+            .trim()
+
+            .toLowerCase();
+
+
+
+    const card =
+
+        cards.find(
+            item =>
+
+                String(
+                    item
+                    &&
+                    item.title
+                    ||
+                    ""
+                )
+
+                    .trim()
+
+                    .toLowerCase()
+
+                ===
+
+                wantedTitle
+        );
+
+
+    if (!card) {
+
+        return;
+
+    }
+
+
+
+    /* Status values */
+
+    card.targetValue =
+        metric.target;
+
+
+    card.achievedValue =
+        metric.achieved;
+
+
+
+    const fields =
+
+        Array.isArray(
+            card.fields
+        )
+
+            ?
+
+            card.fields
+
+            :
+
+            [];
+
+
+
+    fields.forEach(
+        (field, index) => {
+
+
+            const token =
+
+                String(
+
+                    field
+                    &&
+                    (
+                        field.id
+                        ||
+                        field.label
+                        ||
+                        ""
+                    )
+
+                )
+
+                    .trim()
+
+                    .toLowerCase();
+
+
+
+            /* TARGET */
+
+            if (
+                token.includes(
+                    "target"
+                )
+                ||
+                index === 0
+            ) {
+
+                field.value =
+                    metric.target;
+
+                return;
+
+            }
+
+
+
+            /* ACHIEVED */
+
+            if (
+                token.includes(
+                    "achieved"
+                )
+                ||
+                token.includes(
+                    "generated"
+                )
+                ||
+                index === 1
+            ) {
+
+                field.value =
+                    metric.achieved;
+
+                return;
+
+            }
+
+
+
+            /* REMAINING */
+
+            if (
+                token.includes(
+                    "remaining"
+                )
+                ||
+                token.includes(
+                    "yet"
+                )
+                ||
+                token.includes(
+                    "need"
+                )
+                ||
+                index === 2
+            ) {
+
+                field.value =
+                    metric.remaining;
+
+            }
+
+
+        }
+    );
+
+}
+
+
+
+/* =====================================================
+   CORRECT PHARMACY + LAB TOTALS
+===================================================== */
+
+function correctPharmacyAndLabPanIndiaTotals(
+    data
+) {
+
+
+    if (
+        !data
+        ||
+        typeof data !== "object"
+    ) {
+
+        return data;
+
+    }
+
+
+    const states =
+
+        Array.isArray(
+            data.states
+        )
+
+            ?
+
+            data.states
+
+            :
+
+            [];
+
+
+    if (
+        states.length === 0
+    ) {
+
+        return data;
+
+    }
+
+
+
+    /* =================================================
+       PHARMACY REVENUE
+
+       TARGET:
+       Direct sum of Pharmacy Revenue Target row.
+
+       ACHIEVED:
+       Direct sum of Pharmacy Revenue Achieved row.
+
+       REMAINING:
+       Direct sum of Pharmacy Revenue Yet To Be row.
+    ================================================= */
+
+
+    const pharmacyRevenue = {
+
+
+        target:
+
+            sumRevenueMetricFromSheetStates(
+
+                states,
+
+                "pharmacyRevenue",
+
+                "target"
+
+            ),
+
+
+        achieved:
+
+            sumRevenueMetricFromSheetStates(
+
+                states,
+
+                "pharmacyRevenue",
+
+                "achieved"
+
+            ),
+
+
+        remaining:
+
+            sumRevenueMetricFromSheetStates(
+
+                states,
+
+                "pharmacyRevenue",
+
+                "remaining"
+
+            )
+
+    };
+
+
+
+    /* =================================================
+       LAB REVENUE
+    ================================================= */
+
+
+    const labRevenue = {
+
+
+        target:
+
+            sumRevenueMetricFromSheetStates(
+
+                states,
+
+                "labRevenue",
+
+                "target"
+
+            ),
+
+
+        achieved:
+
+            sumRevenueMetricFromSheetStates(
+
+                states,
+
+                "labRevenue",
+
+                "achieved"
+
+            ),
+
+
+        remaining:
+
+            sumRevenueMetricFromSheetStates(
+
+                states,
+
+                "labRevenue",
+
+                "remaining"
+
+            )
+
+    };
+
+
+
+    /* =================================================
+       MAKE SURE TOTALS OBJECT EXISTS
+    ================================================= */
+
+
+    data.totals =
+
+        data.totals
+        &&
+        typeof data.totals === "object"
+
+            ?
+
+            data.totals
+
+            :
+
+            {};
+
+
+
+    /* =================================================
+       REPLACE WRONG VALUES
+    ================================================= */
+
+
+    data.totals.pharmacyRevenue =
+        pharmacyRevenue;
+
+
+    data.totals.labRevenue =
+        labRevenue;
+
+
+
+    /* =================================================
+       RECALCULATE TOTAL REVENUE
+
+       IMPORTANT:
+       Each Target comes from its actual Target.
+
+       We do NOT use:
+       achieved + remaining
+    ================================================= */
+
+
+    const revenueMetricKeys = [
+
+        "ipRevenue",
+
+        "b2bRevenue",
+
+        "opRevenue",
+
+        "pharmacyRevenue",
+
+        "labRevenue"
+
+    ];
+
+
+
+    const totalRevenue = {
+
+        target: 0,
+
+        achieved: 0,
+
+        remaining: 0
+
+    };
+
+
+    const hasValue = {
+
+        target: false,
+
+        achieved: false,
+
+        remaining: false
+
+    };
+
+
+
+    revenueMetricKeys.forEach(
+        metricKey => {
+
+
+            const metric =
+
+                data.totals[
+                    metricKey
+                ];
+
+
+            if (!metric) {
+
+                return;
+
+            }
+
+
+
+            [
+                "target",
+                "achieved",
+                "remaining"
+            ]
+
+                .forEach(
+                    side => {
+
+
+                        const value =
+
+                            Number(
+                                metric[side]
+                            );
+
+
+                        if (
+                            Number.isFinite(
+                                value
+                            )
+                        ) {
+
+
+                            totalRevenue[
+                                side
+                            ]
+                            +=
+                            value;
+
+
+                            hasValue[
+                                side
+                            ]
+                            =
+                            true;
+
+
+                        }
+
+
+                    }
+                );
+
+
+        }
+    );
+
+
+
+    data.totals.totalRevenue = {
+
+
+        target:
+
+            hasValue.target
+
+                ?
+
+                totalRevenue.target
+
+                :
+
+                null,
+
+
+        achieved:
+
+            hasValue.achieved
+
+                ?
+
+                totalRevenue.achieved
+
+                :
+
+                null,
+
+
+        remaining:
+
+            hasValue.remaining
+
+                ?
+
+                totalRevenue.remaining
+
+                :
+
+                null
+
+    };
+
+
+
+    /* =================================================
+       UPDATE VISIBLE CARDS
+    ================================================= */
+
+
+    updateRevenueParameterCard(
+
+        data.parameterCards,
+
+        "Pharmacy Revenue",
+
+        pharmacyRevenue
+
+    );
+
+
+    updateRevenueParameterCard(
+
+        data.parameterCards,
+
+        "Lab Revenue",
+
+        labRevenue
+
+    );
+
+
+    updateRevenueParameterCard(
+
+        data.parameterCards,
+
+        "Total Revenue",
+
+        data.totals.totalRevenue
+
+    );
+
+
+
+    /* =================================================
+       DEBUG
+    ================================================= */
+
+
+    console.log(
+
+        "Corrected Pharmacy/Lab totals:",
+
+        {
+
+            pharmacyRevenue:
+
+                pharmacyRevenue,
+
+            labRevenue:
+
+                labRevenue,
+
+            totalRevenue:
+
+                data.totals
+                    .totalRevenue
+
+        }
+
+    );
+
+
+    return data;
+
+}
+
+Then replace the beginning of your current renderPanIndia() with this:
+
+function renderPanIndia(
+    data
+) {
+
+
+    /* ================================================
+       FIX PHARMACY + LAB BEFORE DISPLAYING
+    ================================================= */
+
+    data =
+        correctPharmacyAndLabPanIndiaTotals(
+            data
+        );
+
+
+    panIndiaData =
+        data;
+
+
+    const states =
+
+        Array.isArray(
+            data.states
+        )
+
+            ?
+
+            data.states
+
+            :
+
+            [];
+
+
+    const failures =
+
+        Array.isArray(
+            data.failures
+        )
+
+            ?
+
+            data.failures
+
+            :
+
+            [];
+
+
+    renderParameterCards(
+        data.parameterCards
+    );
+
+
+    renderGroupedParameterSummary(
+        data.parameterCards
+    );
+
+
+    renderStateWiseRevenueReport(
+        states
+    );
+
+
+    renderStateBreakdown(
+        states
+    );
+
+
+    setText(
+        "loadedStateCount",
+        String(
+            states.length
+        )
+    );
+
+
+    setText(
+        "expectedStateCount",
+        String(
+            data.expectedSources
+            ||
+            6
+        )
+    );
+
+
+    const refreshedAt =
+
+        data.refreshedAt
+
+            ?
+
+            new Date(
+                data.refreshedAt
+            )
+
+            :
+
+            new Date();
+
+
+    setText(
+
+        "lastRefreshed",
+
+        refreshedAt
+            .toLocaleString(
+                "en-IN"
+            )
+
+    );
+
+
+    setText(
+
+        "overallDataStatus",
+
+        failures.length
+
+            ?
+
+            "Partial Data"
+
+            :
+
+            "All Sources Loaded"
+
+    );
+
+
+    const totalRevenue =
+
+        data
+        &&
+        data.totals
+        &&
+        data.totals.totalRevenue
+
+            ?
+
+            data.totals.totalRevenue
+
+            :
+
+            {};
+
+
+    setText(
+
+        "panIndiaRevenueTarget",
+
+        formatCurrency(
+            totalRevenue.target
+        )
+
+    );
+
+
+    setText(
+
+        "panIndiaRevenueGenerated",
+
+        formatCurrency(
+            totalRevenue.achieved
+        )
+
+    );
+
+
+    setText(
+
+        "panIndiaRevenueRemaining",
+
+        formatCurrency(
+            totalRevenue.remaining
+        )
+
+    );
+
+
+    const sourceNames =
+
+        states
+
+            .map(
+                state =>
+
+                    state.sourceColumn
+                    ||
+                    state.label
+            )
+
+            .filter(
+                Boolean
+            );
+
+
+    setText(
+
+        "liveSourceInfo",
+
+        "Loaded live source columns: "
+
+        +
+
+        (
+
+            sourceNames.length
+
+                ?
+
+                sourceNames.join(
+                    ", "
+                )
+
+                :
+
+                "None"
+
+        )
+
+        +
+
+        "."
+
+    );
+
+
+    if (
+        failures.length
+    ) {
+
+
+        showMessage(
+
+            "warningMessage",
+
+            "Pan India data loaded, but some source columns failed: "
+
+            +
+
+            failures
+
+                .map(
+                    failure =>
+                        `${failure.label}: ${failure.message}`
+                )
+
+                .join(
+                    " | "
+                )
+
+        );
+
+
+    }
+    else {
+
+
+        showMessage(
+
+            "successMessage",
+
+            "All Pan India parameters loaded successfully."
+
+        );
+
+
+    }
+
+}
+
+After this correction, your cards should show:
+
+Parameter	Correct value
+Pharmacy Revenue Target	₹1,07,38,041
+Pharmacy Revenue Achieved	₹1,19,29,467
+Pharmacy Revenue Yet To Be	₹2,08,828
+Lab Revenue Target	₹10,83,060
+Lab Revenue Achieved	₹9,82,161
+Lab Revenue Yet To Be	₹2,49,380
+The important rule is: Target, Achieved, and Yet To Be are three independent sums from the Google Sheet. Never rebuild Target using Achieved + Yet To Be.
+
+I have also applied this correction to your complete Pan India HTML file and syntax-checked the JavaScript: 
+
+
+super-Admin_pan_india_pharmacy_lab_fixed.html
+HTML
+i want in txt format
+
+Here is the corrected Pan India code in TXT format: 
+
+
+super-Admin_pan_india_pharmacy_lab_fixed.txt
+Document
+
+
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -4039,12 +5946,559 @@ function renderStateBreakdown(
 
 
 /* =====================================================
+   FIX PHARMACY + LAB PAN INDIA REVENUE TOTALS
+
+   IMPORTANT:
+   Target must be the SUM of each source's Target column.
+   Do NOT calculate Target as Achieved + Yet To Be.
+
+   The live Input → Sheet1 revenue report uses:
+   APTS + KA + TN + WB + MH.
+===================================================== */
+
+function sumRevenueMetricFromSheetStates(
+    states,
+    metricKey,
+    side
+) {
+
+    const stateColumns = [
+        {
+            aliases: [
+                "APTS",
+                "AP & TS",
+                "APTS Combined"
+            ]
+        },
+        {
+            aliases: [
+                "KA",
+                "Karnataka"
+            ]
+        },
+        {
+            aliases: [
+                "TN",
+                "Tamil Nadu",
+                "TamilNadu"
+            ]
+        },
+        {
+            aliases: [
+                "WB",
+                "West Bengal",
+                "WestBengal"
+            ]
+        },
+        {
+            aliases: [
+                "MH",
+                "Maharashtra"
+            ]
+        }
+    ];
+
+
+    const resolvedStates =
+        stateColumns
+            .map(
+                column =>
+                    findRevenueReportState(
+                        states,
+                        column.aliases
+                    )
+            )
+            .filter(
+                Boolean
+            );
+
+
+    let total = 0;
+    let hasValue = false;
+
+
+    resolvedStates.forEach(
+        state => {
+
+            const metric =
+                state
+                &&
+                state[metricKey]
+                    ?
+                    state[metricKey]
+                    :
+                    null;
+
+
+            if (!metric) {
+                return;
+            }
+
+
+            const rawValue =
+                metric[side];
+
+
+            if (
+                rawValue === null
+                ||
+                rawValue === undefined
+                ||
+                rawValue === ""
+            ) {
+                return;
+            }
+
+
+            const value =
+                Number(
+                    rawValue
+                );
+
+
+            if (
+                Number.isFinite(
+                    value
+                )
+            ) {
+
+                total += value;
+                hasValue = true;
+
+            }
+
+        }
+    );
+
+
+    return hasValue
+        ?
+        total
+        :
+        null;
+
+}
+
+
+function updateRevenueParameterCard(
+    cards,
+    cardTitle,
+    metric
+) {
+
+    if (
+        !Array.isArray(cards)
+        ||
+        !metric
+    ) {
+        return;
+    }
+
+
+    const wantedTitle =
+        String(
+            cardTitle
+        )
+            .trim()
+            .toLowerCase();
+
+
+    const card =
+        cards.find(
+            item =>
+                String(
+                    item
+                    &&
+                    item.title
+                    ||
+                    ""
+                )
+                    .trim()
+                    .toLowerCase()
+                ===
+                wantedTitle
+        );
+
+
+    if (!card) {
+        return;
+    }
+
+
+    card.targetValue =
+        metric.target;
+
+    card.achievedValue =
+        metric.achieved;
+
+
+    const fields =
+        Array.isArray(
+            card.fields
+        )
+            ?
+            card.fields
+            :
+            [];
+
+
+    fields.forEach(
+        (field, index) => {
+
+            const token =
+                String(
+                    (
+                        field
+                        &&
+                        (
+                            field.id
+                            ||
+                            field.label
+                            ||
+                            ""
+                        )
+                    )
+                )
+                    .trim()
+                    .toLowerCase();
+
+
+            if (
+                token.includes(
+                    "target"
+                )
+                ||
+                index === 0
+            ) {
+
+                field.value =
+                    metric.target;
+
+                return;
+
+            }
+
+
+            if (
+                token.includes(
+                    "achieved"
+                )
+                ||
+                token.includes(
+                    "generated"
+                )
+                ||
+                index === 1
+            ) {
+
+                field.value =
+                    metric.achieved;
+
+                return;
+
+            }
+
+
+            if (
+                token.includes(
+                    "remaining"
+                )
+                ||
+                token.includes(
+                    "yet"
+                )
+                ||
+                token.includes(
+                    "need"
+                )
+                ||
+                index === 2
+            ) {
+
+                field.value =
+                    metric.remaining;
+
+            }
+
+        }
+    );
+
+}
+
+
+function correctPharmacyAndLabPanIndiaTotals(
+    data
+) {
+
+    if (
+        !data
+        ||
+        typeof data !== "object"
+    ) {
+        return data;
+    }
+
+
+    const states =
+        Array.isArray(
+            data.states
+        )
+            ?
+            data.states
+            :
+            [];
+
+
+    if (
+        states.length === 0
+    ) {
+        return data;
+    }
+
+
+    /* -----------------------------------------
+       PHARMACY REVENUE
+       Target / Achieved / Yet To Be are each
+       summed directly from the sheet columns.
+    ------------------------------------------ */
+
+    const pharmacyRevenue = {
+
+        target:
+            sumRevenueMetricFromSheetStates(
+                states,
+                "pharmacyRevenue",
+                "target"
+            ),
+
+        achieved:
+            sumRevenueMetricFromSheetStates(
+                states,
+                "pharmacyRevenue",
+                "achieved"
+            ),
+
+        remaining:
+            sumRevenueMetricFromSheetStates(
+                states,
+                "pharmacyRevenue",
+                "remaining"
+            )
+
+    };
+
+
+    /* -----------------------------------------
+       LAB REVENUE
+       Target / Achieved / Yet To Be are each
+       summed directly from the sheet columns.
+    ------------------------------------------ */
+
+    const labRevenue = {
+
+        target:
+            sumRevenueMetricFromSheetStates(
+                states,
+                "labRevenue",
+                "target"
+            ),
+
+        achieved:
+            sumRevenueMetricFromSheetStates(
+                states,
+                "labRevenue",
+                "achieved"
+            ),
+
+        remaining:
+            sumRevenueMetricFromSheetStates(
+                states,
+                "labRevenue",
+                "remaining"
+            )
+
+    };
+
+
+    data.totals =
+        data.totals
+        &&
+        typeof data.totals === "object"
+            ?
+            data.totals
+            :
+            {};
+
+
+    data.totals.pharmacyRevenue =
+        pharmacyRevenue;
+
+    data.totals.labRevenue =
+        labRevenue;
+
+
+    /* -----------------------------------------
+       UPDATE PAN INDIA TOTAL REVENUE TOO.
+       Use component Targets directly.
+       Do not reconstruct target from
+       achieved + remaining.
+    ------------------------------------------ */
+
+    const revenueMetricKeys = [
+        "ipRevenue",
+        "b2bRevenue",
+        "opRevenue",
+        "pharmacyRevenue",
+        "labRevenue"
+    ];
+
+
+    const totalRevenue = {
+        target: 0,
+        achieved: 0,
+        remaining: 0
+    };
+
+
+    const hasValue = {
+        target: false,
+        achieved: false,
+        remaining: false
+    };
+
+
+    revenueMetricKeys.forEach(
+        metricKey => {
+
+            const metric =
+                data.totals[
+                    metricKey
+                ];
+
+
+            if (!metric) {
+                return;
+            }
+
+
+            [
+                "target",
+                "achieved",
+                "remaining"
+            ].forEach(
+                side => {
+
+                    const value =
+                        Number(
+                            metric[side]
+                        );
+
+
+                    if (
+                        Number.isFinite(
+                            value
+                        )
+                    ) {
+
+                        totalRevenue[side] +=
+                            value;
+
+                        hasValue[side] =
+                            true;
+
+                    }
+
+                }
+            );
+
+        }
+    );
+
+
+    data.totals.totalRevenue = {
+
+        target:
+            hasValue.target
+                ?
+                totalRevenue.target
+                :
+                null,
+
+        achieved:
+            hasValue.achieved
+                ?
+                totalRevenue.achieved
+                :
+                null,
+
+        remaining:
+            hasValue.remaining
+                ?
+                totalRevenue.remaining
+                :
+                null
+
+    };
+
+
+    /* -----------------------------------------
+       UPDATE THE VISIBLE PARAMETER CARDS.
+    ------------------------------------------ */
+
+    updateRevenueParameterCard(
+        data.parameterCards,
+        "Pharmacy Revenue",
+        pharmacyRevenue
+    );
+
+
+    updateRevenueParameterCard(
+        data.parameterCards,
+        "Lab Revenue",
+        labRevenue
+    );
+
+
+    updateRevenueParameterCard(
+        data.parameterCards,
+        "Total Revenue",
+        data.totals.totalRevenue
+    );
+
+
+    console.log(
+        "Corrected Pan India Pharmacy/Lab Revenue:",
+        {
+            pharmacyRevenue,
+            labRevenue,
+            totalRevenue:
+                data.totals.totalRevenue
+        }
+    );
+
+
+    return data;
+
+}
+
+
+/* =====================================================
    RENDER RESPONSE
 ===================================================== */
 
 function renderPanIndia(
     data
 ) {
+
+    /*
+     * Correct Pharmacy/Lab totals BEFORE rendering cards,
+     * grouped summary, report history data and main totals.
+     */
+    data =
+        correctPharmacyAndLabPanIndiaTotals(
+            data
+        );
+
 
     panIndiaData =
         data;
